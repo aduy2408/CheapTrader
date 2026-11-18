@@ -679,6 +679,25 @@ export function createChartHandle(container: HTMLElement, initialAppearance: Cha
   let lastBars: Bar[] = [];
   let ownsBars = false;
   let legendMeta = { symbol: "", timeframe: "", digits: 5 };
+  series.applyOptions({
+    // Price lines (orders, stops and targets) are annotations, not market data.
+    // Excluding them prevents a stale order from squeezing the candles into a flat strip.
+    autoscaleInfoProvider: () => {
+      const range = chart.timeScale().getVisibleLogicalRange();
+      if (!range || !lastBars.length) return null;
+      const from = Math.max(0, Math.floor(range.from));
+      const to = Math.min(lastBars.length - 1, Math.ceil(range.to));
+      let min = Number.POSITIVE_INFINITY;
+      let max = Number.NEGATIVE_INFINITY;
+      for (let i = from; i <= to; i++) {
+        min = Math.min(min, lastBars[i].low);
+        max = Math.max(max, lastBars[i].high);
+      }
+      return Number.isFinite(min) && Number.isFinite(max)
+        ? { priceRange: { minValue: min, maxValue: max } }
+        : null;
+    },
+  });
 
   function emitLegend(bar: Bar | null) {
     if (!bar) {
