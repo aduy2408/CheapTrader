@@ -201,7 +201,26 @@ export default function App() {
   // A brief confirmation ("Copied 1.12840"); an error, if there is one, wins the spot.
   const [notice, setNotice] = useState<string | null>(null);
   const dismissNotice = useCallback(() => setNotice(null), []);
-  // The right-click menu: where it opened and the chart price under the pointer.
+  const [priceAlerts, setPriceAlerts] = usePersistentState<{ id: string; symbol: string; price: number }[]>("priceAlerts", []);
+  const notifyUser = useCallback((message: string) => {
+    setNotice(message);
+    if ("Notification" in window && Notification.permission === "granted") {
+      new Notification("CheapTrader", { body: message });
+    }
+    try {
+      const audio = new AudioContext();
+      const oscillator = audio.createOscillator();
+      const gain = audio.createGain();
+      oscillator.connect(gain);
+      gain.connect(audio.destination);
+      oscillator.frequency.value = 880;
+      gain.gain.value = 0.05;
+      oscillator.start();
+      oscillator.stop(audio.currentTime + 0.12);
+    } catch {
+      // Browser audio can be unavailable or blocked until a user gesture.
+    }
+  }, []);
   const [chartMenu, setChartMenu] = useState<{ x: number; y: number; price: number | null } | null>(null);
   const closeChartMenu = useCallback(() => setChartMenu(null), []);
   const [orderForm, setOrderForm] = usePersistentState<OrderForm>("orderForm", {
@@ -442,7 +461,7 @@ export default function App() {
       const position = state.positions.find((p) => p.ticket === gone.ticket);
       if (!position) continue;
       const decimals = symbolsRef.current.find((s) => s.name === position.symbol)?.digits ?? 5;
-      setNotice(
+      notifyUser(
         `${kindTitle(gone.order_type)} filled · ${position.side === "BUY" ? "bought" : "sold"} ${formatLots(position.volume)} ${position.symbol} at ${position.price_open.toFixed(decimals)}`,
       );
     }
@@ -455,6 +474,23 @@ export default function App() {
     onReconnect: syncTail, // whatever happened while it was down may have been missed
   });
   const tick = live.tick;
+  const previousTick = useRef<number | null>(null);
+  useEffect(() => {
+    const price = tick?.last || tick?.bid || null;
+    if (price == null) return;
+    const previous = previousTick.current;
+    previousTick.current = price;
+    if (previous == null) return;
+    const hit = priceAlerts.filter(
+      (alert) =>
+        alert.symbol === symbol &&
+        ((previous < alert.price && price >= alert.price) || (previous > alert.price && price <= alert.price)),
+    );
+    if (!hit.length) return;
+    const hitIds = new Set(hit.map((alert) => alert.id));
+    setPriceAlerts((alerts) => alerts.filter((alert) => !hitIds.has(alert.id)));
+    for (const alert of hit) notifyUser(`${alert.symbol} reached ${alert.price.toFixed(digits)}`);
+  }, [digits, notifyUser, priceAlerts, setPriceAlerts, symbol, tick]);
   // The broker's clock, learned from its ticks (see lib/serverClock.ts).
   const clock = useServerClock(tick);
 
@@ -927,6 +963,7 @@ export default function App() {
       try {
         let result = replayActive ? await replayApi.placeOrder(order) : await api.placeOrder(order);
         if (!result.ok) {
+          notifyUser(`Order refused: ${result.error ?? "unknown error"}`);
           setError(`Order refused: ${result.error ?? "unknown error"}`);
           return null;
         }
@@ -1527,6 +1564,17 @@ export default function App() {
       // Right of the entry or left of it decides whether this price is a stop or a
       // target for each open position, so only the one that makes sense is offered.
       const at = roundPrice(price);
+      if (symbol) {
+        items.push({
+          key: "price-alert",
+          label: `Alert when price reaches ${text}`,
+          onSelect: () => {
+            setPriceAlerts((alerts) => [...alerts, { id: `${symbol}-${at}-${Date.now()}`, symbol, price: at }]);
+            if ("Notification" in window && Notification.permission === "default") void Notification.requestPermission();
+            setNotice(`Price alert set · ${symbol} at ${text}`);
+          },
+        });
+      }
 
       // An order that waits at this price: a buy and a sell, each a limit order or (on the other side
       // of the market) a stop order. They carry the ticket's lot size and nothing else; the stop and
