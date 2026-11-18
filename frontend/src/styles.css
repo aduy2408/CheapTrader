@@ -170,6 +170,13 @@ textarea {
   gap: var(--ct-gap);
   min-height: 0;
 }
+.tv-chart-split.horizontal {
+  flex-direction: row;
+}
+
+.tv-chart-split.vertical {
+  flex-direction: column;
+}
 
 .tv-chart-split > .tv-chart-card {
   flex: 1 1 0;

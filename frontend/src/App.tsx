@@ -134,6 +134,7 @@ const orderPartName = (part: OrderPart) => (part === "price" ? "Order price" : p
 const LINE_COLORS = { buy: "#2962ff", sell: "#f23645", sl: "#ff9800", tp: "#089981", draft: "#9598a1" };
 
 type ChartLayout = "single" | "split";
+type ChartLayoutDirection = "horizontal" | "vertical";
 type PaneState = { symbol: string | null; timeframe: Timeframe };
 
 export default function App() {
@@ -141,6 +142,7 @@ export default function App() {
   const [symbol, setSymbol] = usePersistentState<string | null>("symbol", null);
   const [timeframe, setTimeframe] = usePersistentState<Timeframe>("timeframe", "H1");
   const [layout, setLayout] = usePersistentState<ChartLayout>("chartLayout", "single");
+  const [layoutDirection, setLayoutDirection] = usePersistentState<ChartLayoutDirection>("chartLayoutDirection", "horizontal");
   const [panes, setPanes] = usePersistentState<PaneState[]>("chartPanes", [
     { symbol: null, timeframe: "H1" },
     { symbol: null, timeframe: "H1" },
@@ -1756,13 +1758,15 @@ export default function App() {
         onToggleFullscreen={toggleFullscreen}
         layout={layout}
         onLayout={setChartLayout}
+        layoutDirection={layoutDirection}
+        onLayoutDirection={setLayoutDirection}
         update={updateChip(update.info)}
         onUpdate={() => setUpdateOpen(true)}
       />
 
       <div className="tv-body">
         <div className="tv-main">
-          <div className={layout === "split" ? "tv-chart-split" : "tv-chart-card"}>
+          <div className={layout === "split" ? `tv-chart-split ${layoutDirection}` : "tv-chart-card"}>
             <div className="tv-chart-card">
             <div className="tv-chart-canvas" onPointerDown={() => setActivePane(0)} onContextMenu={onChartContextMenu}>
               <ChartBoundary>

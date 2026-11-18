@@ -39,6 +39,8 @@ interface Props {
   onToggleFullscreen: () => void;
   update?: { label: string; tone: "available" | "busy" | "failed"; title: string } | null;
   onUpdate?: () => void;
+  layoutDirection?: "horizontal" | "vertical";
+  onLayoutDirection?: (direction: "horizontal" | "vertical") => void;
   layout?: "single" | "split";
   onLayout?: (layout: "single" | "split") => void;
 }
@@ -136,6 +138,24 @@ export function TopNav(props: Props) {
         >
           <span className="tv-hbtn-label">{props.layout === "split" ? "1 chart" : "2 charts"}</span>
         </button>
+      )}
+      {props.layout === "split" && props.onLayoutDirection && (
+        <>
+          <button
+            className={props.layoutDirection === "horizontal" ? "tv-hbtn active" : "tv-hbtn"}
+            onClick={() => props.onLayoutDirection?.("horizontal")}
+            title="Place charts side by side"
+            aria-label="Horizontal chart panes"
+            aria-pressed={props.layoutDirection === "horizontal"}
+          >↔</button>
+          <button
+            className={props.layoutDirection === "vertical" ? "tv-hbtn active" : "tv-hbtn"}
+            onClick={() => props.onLayoutDirection?.("vertical")}
+            title="Stack charts vertically"
+            aria-label="Vertical chart panes"
+            aria-pressed={props.layoutDirection === "vertical"}
+          >↕</button>
+        </>
       )}
 
       <span className="tv-sep" />
