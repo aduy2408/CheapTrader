@@ -122,9 +122,9 @@ def test_lit_sessions_shifts_with_new_york_dst() -> None:
         for drawing in result.drawings
         if drawing["type"] == "rectangle"
     }
-    assert "2025-03-09T03:00:00+00:00" in starts  # Asia 06:00 in the UTC+7 chart.
-    assert "2025-03-09T11:00:00+00:00" in starts  # London shifts to 14:00 during NY DST.
-    assert "2025-03-09T17:00:00+00:00" in starts  # NY shifts to 20:00 during NY DST.
+    assert "2025-03-09T05:00:00+00:00" in starts  # Asia 06:00 in the UTC+7 chart.
+    assert "2025-03-09T13:00:00+00:00" in starts  # London shifts to 14:00 during NY DST.
+    assert "2025-03-09T19:00:00+00:00" in starts  # NY shifts to 20:00 during NY DST.
 def test_a_bare_series_or_array_is_one_line() -> None:
     code = '''
 import numpy as np
