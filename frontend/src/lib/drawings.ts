@@ -35,6 +35,9 @@ export interface DrawingStyle {
   font_size?: number;
   /** Show the labels inside a long / short position box. */
   show_labels?: boolean;
+  target_color?: string;
+  stop_color?: string;
+  entry_color?: string;
   /** How big a trade a long / short box stands for (`risk_mode` says which of the three counts). */
   risk_mode?: "percent" | "amount" | "lots";
   risk_percent?: number;
@@ -400,14 +403,15 @@ export function layout(d: Drawing, m: Mapper, digits = 5, notes: string[] = []):
       if (x0 == null || x1 == null || yEntry == null || yTp == null || ySl == null) break;
       const left = Math.min(x0, x1);
       const w = Math.abs(x1 - x0);
-      const tpColor = GREEN;
-      const slColor = RED;
+      const tpColor = s.target_color ?? GREEN;
+      const slColor = s.stop_color ?? RED;
+      const entryColor = s.entry_color ?? "#9598a1";
       // the words sit on the tinted boxes, so they are lighter than the lines
       prims.push({ k: "rect", x: left, y: Math.min(yEntry, yTp), w, h: Math.abs(yTp - yEntry), fill: tpColor, fillOpacity: 0.18, hit: true });
       prims.push({ k: "rect", x: left, y: Math.min(yEntry, ySl), w, h: Math.abs(ySl - yEntry), fill: slColor, fillOpacity: 0.18, hit: true });
       prims.push(line(left, yTp, left + w, yTp, tpColor, 1, { hit: true }));
       prims.push(line(left, ySl, left + w, ySl, slColor, 1, { hit: true }));
-      prims.push(line(left, yEntry, left + w, yEntry, "#9598a1", 1, { hit: true }));
+      prims.push(line(left, yEntry, left + w, yEntry, entryColor, 1, { hit: true }));
       if (s.show_labels !== false) {
         const pct = (p: number) => `${((p - entry.price) / (entry.price || 1) * 100).toFixed(2)}%`;
         const risk = Math.abs(entry.price - stop.price);

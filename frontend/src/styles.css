@@ -3639,6 +3639,28 @@ textarea {
 .dr-swatch.on {
   border-color: #ffffff;
 }
+.dr-box-colors {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.dr-box-colors label {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  color: var(--ct-muted);
+  font-size: 9px;
+  font-weight: 700;
+}
+.dr-box-colors input {
+  width: 20px;
+  height: 20px;
+  padding: 1px;
+  background: transparent;
+  border: 1px solid var(--ct-border-strong);
+  border-radius: 3px;
+  cursor: pointer;
+}
 .dr-width {
   display: flex;
   align-items: center;

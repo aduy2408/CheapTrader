@@ -103,7 +103,9 @@ class DrawingStyle(BaseModel):
     extend_left: bool | None = None
     font_size: int | None = Field(default=None, ge=6, le=72)
     show_labels: bool | None = None
-    # How big a trade a long / short box stands for: a share of the balance at risk, an amount of money at
+    target_color: str | None = Field(default=None, max_length=32)
+    stop_color: str | None = Field(default=None, max_length=32)
+    entry_color: str | None = Field(default=None, max_length=32)
     # risk, or a plain number of lots (``risk_mode`` says which one counts).
     risk_mode: Literal["percent", "amount", "lots"] | None = None
     risk_percent: float | None = Field(default=None, gt=0, le=100)

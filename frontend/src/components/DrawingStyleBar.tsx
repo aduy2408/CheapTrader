@@ -61,6 +61,22 @@ export function StyleBar({ drawing, view, trading, sizeInput, onStyle, onLock, o
           Aa
         </button>
       )}
+      {view && (
+        <span className="dr-box-colors" aria-label="Position box colors">
+          <label title="Target line and fill">
+            <span>TP</span>
+            <input type="color" value={style.target_color ?? "#089981"} onChange={(e) => onStyle({ target_color: e.target.value })} />
+          </label>
+          <label title="Stop line and fill">
+            <span>SL</span>
+            <input type="color" value={style.stop_color ?? "#f23645"} onChange={(e) => onStyle({ stop_color: e.target.value })} />
+          </label>
+          <label title="Entry line">
+            <span>EN</span>
+            <input type="color" value={style.entry_color ?? "#9598a1"} onChange={(e) => onStyle({ entry_color: e.target.value })} />
+          </label>
+        </span>
+      )}
 
       {!box && (
         <span className="dr-swatches">
