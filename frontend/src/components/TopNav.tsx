@@ -37,9 +37,10 @@ interface Props {
   onReplay: () => void;
   fullscreen: boolean;
   onToggleFullscreen: () => void;
-  /** A newer version is on GitHub (or being installed): the button that opens its window. */
   update?: { label: string; tone: "available" | "busy" | "failed"; title: string } | null;
   onUpdate?: () => void;
+  layout?: "single" | "split";
+  onLayout?: (layout: "single" | "split") => void;
 }
 
 export function TopNav(props: Props) {
@@ -125,6 +126,17 @@ export function TopNav(props: Props) {
         <IndicatorsIcon />
         <span className="tv-hbtn-label">Indicators</span>
       </button>
+
+      {props.onLayout && (
+        <button
+          className="tv-hbtn"
+          onClick={() => props.onLayout?.(props.layout === "split" ? "single" : "split")}
+          title={props.layout === "split" ? "Use one chart" : "Use two charts"}
+          aria-pressed={props.layout === "split"}
+        >
+          <span className="tv-hbtn-label">{props.layout === "split" ? "1 chart" : "2 charts"}</span>
+        </button>
+      )}
 
       <span className="tv-sep" />
 

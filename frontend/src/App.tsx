@@ -35,6 +35,7 @@ import type {
 import type { ChartAppearance } from "./lib/appearance";
 import { DEFAULT_APPEARANCE, DEFAULT_TOOL_APPEARANCE } from "./lib/appearance";
 import { Chart } from "./components/Chart";
+import { ChartPane } from "./components/ChartPane";
 import { ChartBoundary } from "./components/ChartBoundary";
 import { ChartContextMenu, type ContextMenuItem } from "./components/ChartContextMenu";
 import { ChartLegend, type LegendIndicator, type LegendTrade } from "./components/ChartLegend";
@@ -132,11 +133,51 @@ const orderPartName = (part: OrderPart) => (part === "price" ? "Order price" : p
 // as the Buy / Sell buttons), the stop is orange and the target green.
 const LINE_COLORS = { buy: "#2962ff", sell: "#f23645", sl: "#ff9800", tp: "#089981", draft: "#9598a1" };
 
+type ChartLayout = "single" | "split";
+type PaneState = { symbol: string | null; timeframe: Timeframe };
+
 export default function App() {
   const [symbols, setSymbols] = useState<Symbol[]>([]);
   const [symbol, setSymbol] = usePersistentState<string | null>("symbol", null);
   const [timeframe, setTimeframe] = usePersistentState<Timeframe>("timeframe", "H1");
+  const [layout, setLayout] = usePersistentState<ChartLayout>("chartLayout", "single");
+  const [panes, setPanes] = usePersistentState<PaneState[]>("chartPanes", [
+    { symbol: null, timeframe: "H1" },
+    { symbol: null, timeframe: "H1" },
+  ]);
+  const [activePane, setActivePane] = useState<0 | 1>(0);
   const barCount = INITIAL_BARS;
+  const pane = panes[activePane] ?? { symbol, timeframe };
+  const updatePane = useCallback((index: 0 | 1, patch: Partial<PaneState>) => {
+    setPanes((current) => {
+      const next = [...current];
+      next[index] = { ...(next[index] ?? { symbol: null, timeframe: "H1" }), ...patch };
+      return next;
+    });
+  }, [setPanes]);
+  const selectSymbol = useCallback((name: string) => {
+    if (activePane === 0) setSymbol(name);
+    updatePane(activePane, { symbol: name });
+  }, [activePane, setSymbol, updatePane]);
+  const selectTimeframe = useCallback((tf: Timeframe) => {
+    if (activePane === 0) setTimeframe(tf);
+    updatePane(activePane, { timeframe: tf });
+  }, [activePane, setTimeframe, updatePane]);
+  const setChartLayout = useCallback((next: ChartLayout) => {
+    setLayout(next);
+    if (next === "split") {
+      updatePane(0, { symbol, timeframe });
+      if (!panes[1]?.symbol) updatePane(1, { symbol: symbols[1]?.name ?? symbol, timeframe });
+    }
+  }, [panes, setLayout, symbol, symbols, timeframe, updatePane]);
+  const panesReady = panes.map((item, index) =>
+    index === 0 ? { symbol: symbol ?? item.symbol, timeframe } : item,
+  );
+  useEffect(() => {
+    if (!symbol) return;
+    if (panes[0]?.symbol === symbol && panes[0]?.timeframe === timeframe) return;
+    updatePane(0, { symbol, timeframe });
+  }, [panes, symbol, timeframe, updatePane]);
   const [account, setAccount] = useState<AccountInfo | null>(null);
   const [positions, setPositions] = useState<Position[]>([]);
   // The limit / stop orders that wait for their price (live trading; a replay has none).
@@ -1700,10 +1741,10 @@ export default function App() {
   return (
     <div className="tv-app" ref={appRef}>
       <TopNav
-        symbol={symbol}
-        timeframe={timeframe}
-        onTimeframe={setTimeframe}
-        onPrefetch={replayActive ? undefined : prefetchInterval}
+        symbol={pane.symbol ?? symbol}
+        timeframe={pane.timeframe}
+        onTimeframe={selectTimeframe}
+        onPrefetch={activePane === 0 && !replayActive ? prefetchInterval : undefined}
         onOpenSymbolSearch={() => setSearchOpen(true)}
         indicatorsOpen={showDock && panel === "indicators"}
         tradeOpen={showDock && panel === "trade"}
@@ -1713,14 +1754,17 @@ export default function App() {
         onReplay={toggleReplay}
         fullscreen={isFullscreen}
         onToggleFullscreen={toggleFullscreen}
+        layout={layout}
+        onLayout={setChartLayout}
         update={updateChip(update.info)}
         onUpdate={() => setUpdateOpen(true)}
       />
 
       <div className="tv-body">
         <div className="tv-main">
-          <div className="tv-chart-card">
-            <div className="tv-chart-canvas" onContextMenu={onChartContextMenu}>
+          <div className={layout === "split" ? "tv-chart-split" : "tv-chart-card"}>
+            <div className="tv-chart-card">
+            <div className="tv-chart-canvas" onPointerDown={() => setActivePane(0)} onContextMenu={onChartContextMenu}>
               <ChartBoundary>
                 {(generation) => (
               <Chart
@@ -1875,6 +1919,21 @@ export default function App() {
               onFit={resetView}
             />
           </div>
+          </div>
+          {layout === "split" && (
+            <div className="tv-chart-card">
+              <ChartPane
+                symbol={panesReady[1]?.symbol ?? symbol}
+                timeframe={panesReady[1]?.timeframe ?? timeframe}
+                barCount={barCount}
+                appearance={appearance}
+                active={activePane === 1}
+                onActivate={() => setActivePane(1)}
+                onError={setError}
+                onState={applyState}
+              />
+            </div>
+          )}
 
           {replayActive && replay.reportOpen && (
             <PerformanceReport
@@ -1968,8 +2027,8 @@ export default function App() {
         {showWatchlist && (
           <RightPanel
             symbols={symbols}
-            selected={symbol}
-            onSelect={setSymbol}
+            selected={pane.symbol ?? symbol}
+            onSelect={selectSymbol}
             pinned={pinnedSymbols}
             onPinnedChange={setPinnedSymbols}
             onClose={() => setShowWatchlist(false)}
@@ -2062,9 +2121,9 @@ export default function App() {
       {searchOpen && (
         <SymbolSearchDialog
           symbols={symbols}
-          selected={symbol}
+          selected={pane.symbol ?? symbol}
           pinned={pinnedSymbols}
-          onPick={setSymbol}
+          onPick={selectSymbol}
           onTogglePin={(name) =>
             setPinnedSymbols((list) =>
               list.includes(name) ? list.filter((n) => n !== name) : [name, ...list],
