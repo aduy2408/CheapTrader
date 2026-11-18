@@ -223,7 +223,7 @@ from datetime import date, datetime, time, timedelta, timezone
 
 from ct_draw import rectangle
 
-UTC7 = timezone(timedelta(hours=7))
+DISPLAY_SHIFT = timedelta(hours=5)
 
 
 def _nth_sunday(year, month, n):
@@ -236,8 +236,8 @@ def _ny_dst(day):
 
 
 def _stamp(day, hour, minute):
-    return int(datetime.combine(day, time(hour, minute), UTC7).timestamp())
-
+    wall = datetime.combine(day, time(hour, minute), timezone.utc)
+    return int((wall - DISPLAY_SHIFT).timestamp())
 
 def _sessions(day, colors):
     # The requested UTC+7 windows were taken from New York standard time.
@@ -252,7 +252,7 @@ def _sessions(day, colors):
 
 
 def _day(value):
-    return datetime.fromtimestamp(int(value), timezone.utc).astimezone(UTC7).date()
+    return (datetime.fromtimestamp(int(value), timezone.utc) + DISPLAY_SHIFT).date()
 
 
 def compute(df, params):

@@ -179,6 +179,12 @@ export function AppearanceDialog({ value, onClose, onSave }: Props) {
                   <option value="vertical">Vertical only</option>
                   <option value="horizontal">Horizontal only</option>
                 </select>
+              <label>Crosshair orientation
+                <select value={draft.crosshairAxis} onChange={(e) => set("crosshairAxis", e.target.value as CrosshairAxis)}>
+                  <option value="both">Vertical + horizontal</option>
+                  <option value="vertical">Vertical only</option>
+                  <option value="horizontal">Horizontal only</option>
+                </select>
               <label>Mouse cursor
                 <select value={draft.cursor} onChange={(e) => set("cursor", e.target.value as ChartAppearance["cursor"])}>
                   <option value="crosshair">Crosshair</option>
