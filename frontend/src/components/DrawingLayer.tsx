@@ -164,6 +164,28 @@ export function DrawingController({
   now.current.barSeconds = barSeconds;
   now.current.store = store;
   now.current.trading = trading;
+  const appliedTools = useRef(JSON.stringify(toolAppearance));
+  const toolKey = JSON.stringify(toolAppearance);
+  useEffect(() => {
+    if (appliedTools.current === toolKey) return;
+    appliedTools.current = toolKey;
+    for (const drawing of now.current.store.drawings) {
+      if (drawing.type !== "long" && drawing.type !== "short") continue;
+      now.current.store.preview({
+        ...drawing,
+        style: {
+          ...drawing.style,
+          target_color: toolAppearance.targetColor,
+          target_fill: toolAppearance.targetFill,
+          stop_color: toolAppearance.stopColor,
+          stop_fill: toolAppearance.stopFill,
+          entry_color: toolAppearance.entryColor,
+          show_labels: toolAppearance.showLabels,
+        },
+      });
+      now.current.store.save(drawing.id);
+    }
+  }, [toolAppearance, toolKey]);
 
   // Another symbol: its own drawings, and nothing half done. (Choosing a replay start also cancels a tool.)
   useEffect(() => {
