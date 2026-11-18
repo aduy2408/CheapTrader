@@ -309,6 +309,9 @@ def compute(df, params):
         "params": {
             "correlated_symbol": "",
             "analysis_timeframe": "chart",
+            "show_higher": False,
+            "higher_bullish_color": "#42a5f5",
+            "higher_bearish_color": "#ff9800",
             "sensitivity": 3,
             "max_visible": 5,
             "show_labels": True,

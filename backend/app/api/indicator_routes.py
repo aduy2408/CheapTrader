@@ -75,33 +75,23 @@ def run(
         raise HTTPException(status_code=404, detail=f"indicator {indicator_id} not found")
 
     analysis_timeframe = timeframe
-    higher_timeframe = False
-    if spec.id == "builtin.smt_divergence":
-        requested_timeframe = str(spec.params.get("analysis_timeframe", "chart")).upper()
-        if requested_timeframe != "CHART":
-            try:
-                analysis_timeframe = Timeframe(requested_timeframe)
-            except ValueError as exc:
-                raise HTTPException(status_code=422, detail=f"Unsupported SMT timeframe: {requested_timeframe}") from exc
-            higher_timeframe = analysis_timeframe != timeframe
-
     show_from = None
     if start is not None and end is not None:
         if end < start:
             raise HTTPException(status_code=422, detail="The indicator window ends before it starts.")
-        bars = state.cache.ensure_range(state.broker.adapter, symbol, analysis_timeframe, moment(start), moment(end))
+        bars = state.cache.ensure_range(state.broker.adapter, symbol, timeframe, moment(start), moment(end))
         needed = declared_bars(spec.code) or 0
         if bars and len(bars) < needed:
             warmup = state.cache.history_before(
-                state.broker.adapter, symbol, analysis_timeframe, bars[0].time, needed - len(bars)
+                state.broker.adapter, symbol, timeframe, bars[0].time, needed - len(bars)
             )
             bars = warmup.bars + bars
-        show_from = None if higher_timeframe else start
+        show_from = start
     else:
         bars = state.cache.get_bars(
-            state.broker.adapter, symbol, analysis_timeframe, count=bars_to_load(count, declared_bars(spec.code))
+            state.broker.adapter, symbol, timeframe, count=bars_to_load(count, declared_bars(spec.code))
         )
-        show_from = None if higher_timeframe else (bars[-count].time if len(bars) > count else None)
+        show_from = bars[-count].time if len(bars) > count else None
     context = None
     correlated_symbol = spec.params.get("correlated_symbol")
     if correlated_symbol is not None:
@@ -129,5 +119,44 @@ def run(
         show_from=show_from,
         context=context,
     )
+    if spec.id == "builtin.smt_divergence" and spec.params.get("show_higher", False):
+        requested_timeframe = str(spec.params.get("analysis_timeframe", "chart")).upper()
+        if requested_timeframe != "CHART":
+            try:
+                higher_timeframe = Timeframe(requested_timeframe)
+            except ValueError as exc:
+                raise HTTPException(status_code=422, detail=f"Unsupported SMT timeframe: {requested_timeframe}") from exc
+            higher_bars = state.cache.get_bars(
+                state.broker.adapter, symbol, higher_timeframe, count=bars_to_load(count, declared_bars(spec.code))
+            )
+            higher_context = None
+            if correlated_symbol is not None:
+                try:
+                    higher_correlated = state.cache.ensure_range(
+                        state.broker.adapter,
+                        str(correlated_symbol).strip(),
+                        higher_timeframe,
+                        moment(higher_bars[0].time),
+                        moment(higher_bars[-1].time),
+                    ) if higher_bars and str(correlated_symbol).strip() else []
+                    higher_times = {bar.time for bar in higher_bars}
+                    higher_context = [bar for bar in higher_correlated if bar.time in higher_times]
+                except Exception:  # noqa: BLE001 - unavailable context is an indicator error
+                    higher_context = []
+            higher_params = dict(spec.params)
+            higher_params["bullish_color"] = higher_params.get("higher_bullish_color", "#42a5f5")
+            higher_params["bearish_color"] = higher_params.get("higher_bearish_color", "#ff9800")
+            higher_result = run_indicator(
+                indicator_id=spec.id,
+                name=spec.name,
+                code=spec.code,
+                bars=higher_bars,
+                params=higher_params,
+                overlay=spec.overlay,
+                pane=spec.pane,
+                settings=state.settings,
+                context=higher_context,
+            )
+            result.drawings.extend(higher_result.drawings)
     result.params = dict(spec.params)  # the legend shows them after the name
     return result
