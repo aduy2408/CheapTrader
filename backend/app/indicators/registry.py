@@ -223,7 +223,7 @@ from datetime import date, datetime, time, timedelta, timezone
 
 from ct_draw import rectangle
 
-DISPLAY_SHIFT = timedelta(hours=5)
+DISPLAY_SHIFT = timedelta(hours=3)
 
 
 def _nth_sunday(year, month, n):
