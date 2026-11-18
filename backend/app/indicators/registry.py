@@ -232,10 +232,10 @@ def _sessions(day):
     # During NY daylight time, London, pre-NY and NY move one hour earlier.
     shift = -1 if _ny_dst(day) else 0
     return [
-        ("Asia", _stamp(day, 6, 0), _stamp(day, 12, 0), "#9800ff", "#9800ff", True),
-        ("London", _stamp(day, 15 + shift, 0), _stamp(day, 17 + shift, 30), "#434651", "#434651", False),
-        ("Pre-NY", _stamp(day, 19 + shift, 0), _stamp(day, 20 + shift, 30), "#787b86", "#787b86", False),
-        ("NY", _stamp(day, 21 + shift, 0), _stamp(day, 23 + shift, 30), "#434651", "#434651", False),
+        ("Asia", _stamp(day, 6, 0), _stamp(day, 12, 0), "#b79bd3", "#b79bd3", False),
+        ("London", _stamp(day, 15 + shift, 0), _stamp(day, 17 + shift, 30), "#eee9c9", "#eee9c9", False),
+        ("Pre-NY", _stamp(day, 19 + shift, 0), _stamp(day, 20 + shift, 30), "#e9eef0", "#e9eef0", False),
+        ("NY", _stamp(day, 21 + shift, 0), _stamp(day, 23 + shift, 30), "#cce5d7", "#cce5d7", False),
     ]
 
 
@@ -269,21 +269,16 @@ def compute(df, params):
                 continue
             high = float(part["high"].max())
             low = float(part["low"].min())
-            right = end if int(part["time"].iloc[-1]) >= end - 60 else int(part["time"].iloc[-1])
+            last_time = int(df["time"].iloc[-1])
+            active = start <= last_time < end
+            right = last_time if active else end
             style = {
                 "color": line,
                 "fill": fill,
-                "fill_opacity": 0.12 if name == "Asia" else 0.08,
+                "fill_opacity": 0.32,
                 "text": name,
             }
-            sessions.append(rectangle((start, high), (right, low), extend_right=right < end, **style))
-            if lines:
-                middle = (high + low) / 2
-                sessions.extend([
-                    {"type": "trendline", "points": [(start, high), (right, high)], "style": {"color": line, "width": 1}},
-                    {"type": "trendline", "points": [(start, middle), (right, middle)], "style": {"color": line, "dash": "dotted", "width": 1}},
-                    {"type": "trendline", "points": [(start, low), (right, low)], "style": {"color": line, "width": 1}},
-                ])
+            sessions.append(rectangle((start, high), (right, low), extend_right=active, **style))
 
     if bool(params.get("show_levels", True)):
         days = {}
