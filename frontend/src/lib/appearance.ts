@@ -1,5 +1,14 @@
 export type CrosshairStyle = 0 | 1 | 2 | 3 | 4;
 
+export interface ToolAppearance {
+  targetColor: string;
+  targetFill: string;
+  stopColor: string;
+  stopFill: string;
+  entryColor: string;
+  showLabels: boolean;
+}
+
 export interface ChartAppearance {
   background: string;
   gridVisible: boolean;
@@ -16,7 +25,16 @@ export interface ChartAppearance {
   wickDown: string;
   cursor: "crosshair" | "default";
   crosshairStyle: CrosshairStyle;
+  tools: ToolAppearance;
 }
+export const DEFAULT_TOOL_APPEARANCE: ToolAppearance = {
+  targetColor: "#089981",
+  targetFill: "#089981",
+  stopColor: "#f23645",
+  stopFill: "#f23645",
+  entryColor: "#9598a1",
+  showLabels: true,
+};
 
 export const DEFAULT_APPEARANCE: ChartAppearance = {
   gridVisible: true,
@@ -34,4 +52,5 @@ export const DEFAULT_APPEARANCE: ChartAppearance = {
   wickDown: "#f23645",
   cursor: "crosshair",
   crosshairStyle: 2,
+  tools: DEFAULT_TOOL_APPEARANCE,
 };

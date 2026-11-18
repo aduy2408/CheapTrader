@@ -22,6 +22,7 @@ import {
   type PointerEvent as ReactPointerEvent,
   type WheelEvent as ReactWheelEvent,
 } from "react";
+import type { ToolAppearance } from "../lib/appearance";
 import type { ClearResult, LockedScope } from "../lib/api";
 import type { ChartGeometry } from "../lib/chart";
 import { enterAt, type BoxOrder } from "../lib/boxOrder";
@@ -69,6 +70,8 @@ interface Props {
   paused: boolean;
   /** The account and the market, for the orders a long / short box can place. */
   trading: BoxTrading;
+  /** Defaults applied to newly created long / short boxes. */
+  toolAppearance: ToolAppearance;
   onDocs: () => void;
   onError: (message: string) => void;
   onNotice: (message: string) => void;
@@ -124,6 +127,7 @@ export function DrawingController({
   indicatorDrawings,
   paused,
   trading,
+  toolAppearance,
   onDocs,
   onError,
   onNotice,
@@ -148,7 +152,8 @@ export function DrawingController({
   const sending = useRef(false);
 
   // The newest of everything, for the handlers that outlive a render.
-  const now = useRef({ geometry, tool, placed, selectedId, bars, barSeconds, store, paused, trading, magnet, mapper: null as Mapper | null });
+  const now = useRef({ geometry, tool, placed, selectedId, bars, barSeconds, store, paused, trading, toolAppearance, magnet, mapper: null as Mapper | null });
+  now.current.toolAppearance = toolAppearance;
   now.current.magnet = magnet;
   now.current.paused = paused;
   now.current.geometry = geometry;
@@ -196,8 +201,23 @@ export function DrawingController({
       return;
     }
     const made = tidy(createDrawing(s.tool, points, { barSeconds: s.barSeconds, risk: averageRange(s.bars) }));
-    s.store.add(made);
-    setSelectedId(made.id);
+    const styled =
+      made.type === "long" || made.type === "short"
+        ? {
+            ...made,
+            style: {
+              ...made.style,
+              target_color: s.toolAppearance.targetColor,
+              target_fill: s.toolAppearance.targetFill,
+              stop_color: s.toolAppearance.stopColor,
+              stop_fill: s.toolAppearance.stopFill,
+              entry_color: s.toolAppearance.entryColor,
+              show_labels: s.toolAppearance.showLabels,
+            },
+          }
+        : made;
+    s.store.add(styled);
+    setSelectedId(styled.id);
     setTool(null);
     setPlaced([]);
   }, []);

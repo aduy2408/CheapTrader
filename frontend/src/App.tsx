@@ -33,7 +33,7 @@ import type {
   ViewPolicy,
 } from "./lib/chart";
 import type { ChartAppearance } from "./lib/appearance";
-import { DEFAULT_APPEARANCE } from "./lib/appearance";
+import { DEFAULT_APPEARANCE, DEFAULT_TOOL_APPEARANCE } from "./lib/appearance";
 import { Chart } from "./components/Chart";
 import { ChartBoundary } from "./components/ChartBoundary";
 import { ChartContextMenu, type ContextMenuItem } from "./components/ChartContextMenu";
@@ -179,6 +179,7 @@ export default function App() {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [appearance, setAppearance] = usePersistentState<ChartAppearance>("chartAppearance", DEFAULT_APPEARANCE);
   const [appearanceOpen, setAppearanceOpen] = useState(false);
+  const toolAppearance = appearance.tools ?? DEFAULT_TOOL_APPEARANCE;
 
   const [panel, setPanel] = usePersistentState<DockTab>("panel", "trade");
   const [activeIndicators, setActiveIndicators] = usePersistentState<string[]>(
@@ -1772,6 +1773,7 @@ export default function App() {
                 indicatorDrawings={shownDrawings}
                 paused={replayPicking}
                 trading={boxTrading}
+                toolAppearance={toolAppearance}
                 onDocs={() => setDocs("drawings")}
                 onError={setError}
                 onNotice={setNotice}

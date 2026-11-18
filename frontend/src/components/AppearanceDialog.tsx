@@ -1,5 +1,5 @@
 import { useState } from "react";
-import type { ChartAppearance, CrosshairStyle } from "../lib/appearance";
+import { DEFAULT_APPEARANCE, DEFAULT_TOOL_APPEARANCE, type ChartAppearance, type CrosshairStyle } from "../lib/appearance";
 
 interface Props {
   value: ChartAppearance;
@@ -15,11 +15,19 @@ const crosshairStyles: { value: CrosshairStyle; label: string }[] = [
   { value: 4, label: "Sparse dotted" },
 ];
 
+const normalize = (value: ChartAppearance): ChartAppearance => ({
+  ...DEFAULT_APPEARANCE,
+  ...value,
+  tools: { ...DEFAULT_TOOL_APPEARANCE, ...value.tools },
+});
+
 export function AppearanceDialog({ value, onClose, onSave }: Props) {
-  const [draft, setDraft] = useState(value);
-  const [tab, setTab] = useState<"symbol" | "canvas">("canvas");
+  const [draft, setDraft] = useState(() => normalize(value));
+  const [tab, setTab] = useState<"symbol" | "canvas" | "tools">("canvas");
   const set = <K extends keyof ChartAppearance>(key: K, next: ChartAppearance[K]) =>
     setDraft((current) => ({ ...current, [key]: next }));
+  const setTool = <K extends keyof ChartAppearance["tools"]>(key: K, next: ChartAppearance["tools"][K]) =>
+    setDraft((current) => ({ ...current, tools: { ...current.tools, [key]: next } }));
 
   return (
     <div className="appearance-backdrop" role="presentation" onMouseDown={(event) => {
@@ -57,7 +65,7 @@ export function AppearanceDialog({ value, onClose, onSave }: Props) {
                 </select>
               </label>
             </div>
-          ) : (
+          ) : tab === "symbol" ? (
             <div className="appearance-fields">
               <h3>Candles</h3>
               <label>Up body <input type="color" value={draft.up} onChange={(e) => set("up", e.target.value)} /></label>
@@ -66,6 +74,16 @@ export function AppearanceDialog({ value, onClose, onSave }: Props) {
               <label>Down border <input type="color" value={draft.borderDown} onChange={(e) => set("borderDown", e.target.value)} /></label>
               <label>Up wick <input type="color" value={draft.wickUp} onChange={(e) => set("wickUp", e.target.value)} /></label>
               <label>Down wick <input type="color" value={draft.wickDown} onChange={(e) => set("wickDown", e.target.value)} /></label>
+            </div>
+          ) : (
+            <div className="appearance-fields">
+              <h3>Position box defaults</h3>
+              <label>Target line <input type="color" value={draft.tools.targetColor} onChange={(e) => setTool("targetColor", e.target.value)} /></label>
+              <label>Target section <input type="color" value={draft.tools.targetFill} onChange={(e) => setTool("targetFill", e.target.value)} /></label>
+              <label>Stop line <input type="color" value={draft.tools.stopColor} onChange={(e) => setTool("stopColor", e.target.value)} /></label>
+              <label>Stop section <input type="color" value={draft.tools.stopFill} onChange={(e) => setTool("stopFill", e.target.value)} /></label>
+              <label>Entry line <input type="color" value={draft.tools.entryColor} onChange={(e) => setTool("entryColor", e.target.value)} /></label>
+              <label className="appearance-check"><span>Position box labels</span><input type="checkbox" checked={draft.tools.showLabels} onChange={(e) => setTool("showLabels", e.target.checked)} /></label>
             </div>
           )}
         </div>
