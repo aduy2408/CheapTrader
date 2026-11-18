@@ -223,11 +223,23 @@ export default function App() {
         setBroker(health.broker);
         setVersion(health.version ?? null);
         const list = await api.symbols();
-        setSymbols(list);
+        const saved = await Promise.all(
+          pinnedSymbols
+            .filter((name) => !list.some((item) => item.name === name))
+            .map(async (name) => {
+              try {
+                return await api.symbol(name);
+              } catch {
+                return null;
+              }
+            }),
+        );
+        const available = [...list, ...saved.filter((item): item is Symbol => item !== null)];
+        setSymbols(available);
         // Open the first symbol when none is remembered, or when the remembered
         // one is not offered by this broker (e.g. after switching accounts).
-        if (list.length && (!symbol || !list.some((s) => s.name === symbol))) {
-          setSymbol(list[0].name);
+        if (available.length && (!symbol || !available.some((s) => s.name === symbol))) {
+          setSymbol(available[0].name);
         }
       } catch (err) {
         setError((err as Error).message);
