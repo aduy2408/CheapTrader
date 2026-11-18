@@ -143,6 +143,12 @@ export function AppearanceDialog({ value, onClose, onSave }: Props) {
                   <option value="vertical">Vertical only</option>
                   <option value="horizontal">Horizontal only</option>
                 </select>
+              <label>Crosshair orientation
+                <select value={draft.crosshairAxis} onChange={(e) => set("crosshairAxis", e.target.value as CrosshairAxis)}>
+                  <option value="both">Vertical + horizontal</option>
+                  <option value="vertical">Vertical only</option>
+                  <option value="horizontal">Horizontal only</option>
+                </select>
               <label>Mouse cursor
                 <select value={draft.cursor} onChange={(e) => set("cursor", e.target.value as ChartAppearance["cursor"])}>
                   <option value="crosshair">Crosshair</option>
@@ -162,6 +168,21 @@ export function AppearanceDialog({ value, onClose, onSave }: Props) {
             </div>
           ) : (
             <div className="appearance-fields">
+              <h3>Trend line</h3>
+              <label>Color <input type="color" value={draft.tools.trendlineColor} onChange={(e) => setTool("trendlineColor", e.target.value)} /></label>
+              <label>Width <input type="number" min="1" max="8" value={draft.tools.trendlineWidth} onChange={(e) => setTool("trendlineWidth", Math.max(1, Math.min(8, Number(e.target.value) || 1)))} /></label>
+              <label>Style
+                <select value={draft.tools.trendlineDash} onChange={(e) => setTool("trendlineDash", e.target.value as ChartAppearance["tools"]["trendlineDash"])}>
+                  <option value="solid">Solid</option><option value="dashed">Dashed</option><option value="dotted">Dotted</option>
+                </select>
+              </label>
+              <h3>Rectangle</h3>
+              <label>Fill <input type="color" value={draft.tools.rectangleFill} onChange={(e) => setTool("rectangleFill", e.target.value)} /></label>
+              <label>Opacity <input type="number" min="0" max="100" value={draft.tools.rectangleOpacity} onChange={(e) => setTool("rectangleOpacity", Math.max(0, Math.min(100, Number(e.target.value) || 0)))} />%</label>
+              <h3>Channel</h3>
+              <label>Line <input type="color" value={draft.tools.channelColor} onChange={(e) => setTool("channelColor", e.target.value)} /></label>
+              <label>Fill <input type="color" value={draft.tools.channelFill} onChange={(e) => setTool("channelFill", e.target.value)} /></label>
+              <label>Opacity <input type="number" min="0" max="100" value={draft.tools.channelOpacity} onChange={(e) => setTool("channelOpacity", Math.max(0, Math.min(100, Number(e.target.value) || 0)))} />%</label>
               <h3>Position box defaults</h3>
               <label>Target line <input type="color" value={draft.tools.targetColor} onChange={(e) => setTool("targetColor", e.target.value)} /></label>
               <label>Target section <input type="color" value={draft.tools.targetFill} onChange={(e) => setTool("targetFill", e.target.value)} /></label>

@@ -2,6 +2,14 @@ export type CrosshairStyle = 0 | 1 | 2 | 3 | 4;
 export type CrosshairAxis = "both" | "vertical" | "horizontal";
 
 export interface ToolAppearance {
+  trendlineColor: string;
+  trendlineWidth: number;
+  trendlineDash: "solid" | "dashed" | "dotted";
+  rectangleFill: string;
+  rectangleOpacity: number;
+  channelColor: string;
+  channelFill: string;
+  channelOpacity: number;
   targetColor: string;
   targetFill: string;
   stopColor: string;
@@ -30,6 +38,14 @@ export interface ChartAppearance {
   tools: ToolAppearance;
 }
 export const DEFAULT_TOOL_APPEARANCE: ToolAppearance = {
+  trendlineColor: "#2962ff",
+  trendlineWidth: 2,
+  trendlineDash: "solid",
+  rectangleFill: "#2962ff",
+  rectangleOpacity: 15,
+  channelColor: "#2962ff",
+  channelFill: "#2962ff",
+  channelOpacity: 10,
   targetColor: "#089981",
   targetFill: "#089981",
   stopColor: "#f23645",

@@ -102,6 +102,29 @@ function hintFor(tool: Tool, placed: number): string {
   };
   return `${TOOL_NAMES[tool]}: ${steps[tool][Math.min(placed, steps[tool].length - 1)]} · Esc to cancel`;
 }
+function toolStyle(drawing: Drawing, tools: ToolAppearance, source?: Tool): DrawingStyle {
+  if (drawing.type === "trendline" && source !== "channel") {
+    return { ...drawing.style, color: tools.trendlineColor, width: tools.trendlineWidth, dash: tools.trendlineDash };
+  }
+  if (drawing.type === "rectangle" || source === "rectangle") {
+    return { ...drawing.style, fill: tools.rectangleFill, fill_opacity: tools.rectangleOpacity / 100 };
+  }
+  if (drawing.type === "channel" || source === "channel") {
+    return {
+      ...drawing.style,
+      color: tools.channelColor,
+      fill: tools.channelFill,
+      fill_opacity: tools.channelOpacity / 100,
+    };
+  }
+  return drawing.style;
+}
+
+function straighten(from: DrawingPoint, to: DrawingPoint): DrawingPoint {
+  return Math.abs(to.time - from.time) >= Math.abs(to.price - from.price)
+    ? { ...to, price: from.price }
+    : { ...to, time: from.time };
+}
 
 const isTyping = (target: EventTarget | null) => {
   const el = target as HTMLElement | null;
@@ -145,6 +168,7 @@ export function DrawingController({
   const sizeInput = useRef<HTMLInputElement>(null);
   const pointer = useRef<{ x: number; y: number } | null>(null);
   const pointerSeq = useRef(0);
+  const shiftKey = useRef(false);
   const grab = useRef<Grab | null>(null);
   const lastSig = useRef("");
   const menuCount = useRef(0);
@@ -217,7 +241,9 @@ export function DrawingController({
     const price = g.localYToPrice(at.y);
     if (time == null || price == null) return;
     const point = s.magnet ? snapToCandle({ ...at, time, price }, s.bars, g) : null;
-    const points = [...s.placed, point ?? { time, price }];
+    const rawPoint = point ?? { time, price };
+    const placedPoint = s.placed.length && shiftKey.current ? straighten(s.placed[0], rawPoint) : rawPoint;
+    const points = [...s.placed, placedPoint];
     if (points.length < TOOL_POINTS[s.tool]) {
       setPlaced(points);
       return;
@@ -237,7 +263,7 @@ export function DrawingController({
               show_labels: s.toolAppearance.showLabels,
             },
           }
-        : made;
+        : { ...made, style: toolStyle(made, s.toolAppearance) };
     s.store.add(styled);
     setSelectedId(styled.id);
     setTool(null);
@@ -263,6 +289,7 @@ export function DrawingController({
   // Esc backs out one step at a time; Delete removes the selected drawing (unless it is locked).
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Shift") shiftKey.current = true;
       if (isTyping(e.target) || e.ctrlKey || e.metaKey || e.altKey) return;
       // a dialog or a menu is open: it owns the keys
       if (document.querySelector('[aria-modal="true"], .tv-ctxmenu')) return;
@@ -285,8 +312,15 @@ export function DrawingController({
         setSelectedId(null);
       }
     };
+    const onKeyUp = (e: KeyboardEvent) => {
+      if (e.key === "Shift") shiftKey.current = false;
+    };
     window.addEventListener("keydown", onKey, true);
-    return () => window.removeEventListener("keydown", onKey, true);
+    window.addEventListener("keyup", onKeyUp, true);
+    return () => {
+      window.removeEventListener("keydown", onKey, true);
+      window.removeEventListener("keyup", onKeyUp, true);
+    };
   }, [onNotice]);
 
   // A selected drawing that is gone (removed by a script, or by another tab) is no longer selected.
@@ -491,8 +525,10 @@ export function DrawingController({
   if (mapper && tool && placed.length && pointer.current) {
     const time = mapper.time(pointer.current.x);
     const price = mapper.price(pointer.current.y);
-    const sketch = time != null && price != null ? draft(tool, placed, snappedPoint ?? { time, price }, ctx) : null;
-    if (sketch) ghost = layout(sketch, mapper, digits);
+    const sketch = time != null && price != null
+      ? draft(tool, placed, shiftKey.current ? straighten(placed[0], snappedPoint ?? { time, price }) : (snappedPoint ?? { time, price }), ctx)
+      : null;
+    if (sketch) ghost = layout({ ...sketch, style: toolStyle(sketch, toolAppearance, tool) }, mapper, digits);
   }
 
   const selected = shapes.find((s) => s.drawing.id === selectedId && !s.readonly) ?? null;
