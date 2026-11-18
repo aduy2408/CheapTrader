@@ -260,9 +260,23 @@ class BarStore:
             self._backfill(broker, symbol, timeframe, count)
 
         bars = self.read(symbol, timeframe, count=count)
+        if self._has_suspicious_gap(bars, timeframe):
+            # A previous broker session can leave a stale history island in the
+            # SQLite store. Replace the requested window with the terminal's
+            # current contiguous window instead of drawing a false price jump.
+            fresh = broker.get_bars(symbol, timeframe, count=count)
+            if fresh:
+                self.upsert(symbol, timeframe, fresh)
+                bars = self.read(symbol, timeframe, count=count)
         if self._fill_gaps(broker, symbol, timeframe, bars):
             bars = self.read(symbol, timeframe, count=count)
         return bars
+
+    @staticmethod
+    def _has_suspicious_gap(bars: list[Bar], timeframe: Timeframe) -> bool:
+        limit = _MAX_GAP.get(timeframe)
+        island_gap = max(limit or 0, 30 * 86400)
+        return bool(island_gap and any(b.time - a.time > island_gap for a, b in zip(bars, bars[1:])))
 
     def _refresh_tail(
         self,
