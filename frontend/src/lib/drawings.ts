@@ -343,11 +343,6 @@ export function layout(d: Drawing, m: Mapper, digits = 5, notes: string[] = []):
       const reach = s.extend_right ? Math.max(xr, m.width + 2) : xr;
       const fill = s.fill ?? color;
       prims.push({ k: "rect", x: xl, y: yt, w: Math.max(0, reach - xl), h: yb - yt, fill, fillOpacity: s.fill_opacity ?? 0.15, hit: true });
-      prims.push(line(xl, yt, reach, yt, color, width, { dash, hit: true }));
-      prims.push(line(xl, yb, reach, yb, color, width, { dash, hit: true }));
-      prims.push(line(xl, yt, xl, yb, color, width, { dash, hit: true }));
-      // with the box extended, the right side stays where it was drawn, as a quieter line
-      prims.push(line(xr, yt, xr, yb, color, width, { dash: s.extend_right ? "3 4" : dash, hit: true }));
       const xm = (xl + xr) / 2;
       const ym = (yt + yb) / 2;
       handles.push(

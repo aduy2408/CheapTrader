@@ -68,19 +68,14 @@ test("a trend line can go on to the right, and to the left", () => {
   assert.ok(both.x1 <= -2000 && both.x2 >= 3000);
 });
 
-test("a rectangle stays between its corners unless extended", () => {
+test("a rectangle has fill but no outline", () => {
+  assert.equal(lines(rect()).length, 0);
+  assert.equal(lines(rect({ extend_right: true })).length, 0);
   const closed = rects(rect())[0];
   assert.equal(closed.x, 20);
   assert.equal(closed.x + closed.w, 40, "it ends at its right side");
-  assert.equal(lines(rect()).find((p) => p.x1 === p.x2 && near(p.x1, 40))!.dash, undefined);
-
   const extended = rects(rect({ extend_right: true }))[0];
   assert.ok(extended.x + extended.w >= flat.width, "its fill reaches the right edge of the plot");
-  const top = lines(rect({ extend_right: true })).find((p) => p.y1 === p.y2 && near(p.y1, 100))!;
-  assert.ok(top.x2 >= flat.width, "so do its top and bottom");
-  const side = lines(rect({ extend_right: true })).find((p) => p.x1 === p.x2 && near(p.x1, 40))!;
-  assert.ok(side, "the right side stays where it was drawn");
-  assert.equal(side.dash, "3 4", "...as a quiet dotted line");
 });
 
 
