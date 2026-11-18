@@ -1423,10 +1423,24 @@ export default function App() {
   }, [livePlots, replayActive, cursorTime]);
   // The same goes for drawings: one is shown once the replay has reached all of its points
   // (a horizontal line has no time, so it is always shown).
+  const alertDrawings = useMemo<Drawing[]>(
+    () =>
+      priceAlerts
+        .filter((alert) => alert.symbol === frame.symbol)
+        .map((alert) => ({
+          id: `price-alert-${alert.id}`,
+          type: "hline",
+          points: [{ time: 0, price: alert.price }],
+          style: { color: "#f5b642", width: 1, dash: "dashed", text: `Alert ${alert.price}` },
+          owner: "price-alert",
+        })),
+    [frame.symbol, priceAlerts],
+  );
   const shownDrawings = useMemo(() => {
-    if (!replayActive || !cursorTime) return liveDrawings;
-    return liveDrawings.filter((d) => d.type === "hline" || d.points.every((p) => p.time <= cursorTime));
-  }, [liveDrawings, replayActive, cursorTime]);
+    const drawings = [...liveDrawings, ...alertDrawings];
+    if (!replayActive || !cursorTime) return drawings;
+    return drawings.filter((d) => d.type === "hline" || d.points.every((p) => p.time <= cursorTime));
+  }, [alertDrawings, liveDrawings, replayActive, cursorTime]);
   const overlayLegend = useMemo(() => indicatorSet.legend.filter((l) => l.pane === 0), [indicatorSet.legend]);
   const paneLegend = useMemo(() => indicatorSet.legend.filter((l) => l.pane > 0), [indicatorSet.legend]);
 
