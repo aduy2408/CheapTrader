@@ -14,11 +14,16 @@ from app import paths
 
 
 def module_command(module: str, *args: str) -> list[str]:
-    """The command line that runs ``module`` as a program in a child process.
+    """The command line that runs a module in a child process.
 
     In development that is ``python -m module``. The built program has no ``python`` to
     hand ``-m`` to: it is run again with ``--worker module`` instead (see ``dispatch``).
+    On Linux, ``CT_WINE_PYTHON`` runs MT5 workers in Windows Python under Wine because
+    the official MetaTrader5 package is Windows-only.
     """
+    wine_python = os.environ.get("CT_WINE_PYTHON")
+    if wine_python:
+        return ["wine", wine_python, "-m", module, *args]
     if paths.frozen():
         return [sys.executable, "--worker", module, *args]
     return [sys.executable, "-m", module, *args]

@@ -86,10 +86,10 @@ MetaTrader terminal with:
 ./run-linux.sh
 ```
 
-`run-linux.sh` uses the existing `/mnt/data/mt5` Wine prefix and terminal path by default. Override them with
-`WINEPREFIX` and `CT_MT5_PATH`. The Linux Python environment cannot install the official Windows-only
-`MetaTrader5` package, so the app falls back to its synthetic broker until a Windows-compatible MT5 bridge is
-available; the terminal itself is still started directly through Wine, without Lutris.
+`run-linux.sh` uses the existing `/mnt/data/mt5` Wine prefix and terminal path by default. It starts the terminal
+directly through Wine, and uses Windows Python plus the official `MetaTrader5` package inside that prefix for live
+data. Override the prefix and terminal executable with `WINEPREFIX` and `CT_MT5_EXE`. The Windows Python path can
+be overridden with `CT_WINE_PYTHON`.
 
 
 ## Updates

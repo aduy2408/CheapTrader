@@ -3,11 +3,13 @@ set -euo pipefail
 
 ROOT=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
 BACKEND="$ROOT/backend"
-MT5_EXE=${CT_MT5_PATH:-/mnt/data/mt5/drive_c/Program Files/MetaTrader 5/terminal64.exe}
+MT5_EXE=${CT_MT5_EXE:-/mnt/data/mt5/drive_c/Program Files/MetaTrader 5/terminal64.exe}
 export WINEPREFIX=${WINEPREFIX:-/mnt/data/mt5}
 export CT_UI_DIR=${CT_UI_DIR:-$ROOT/frontend/dist}
 export CT_BROKER=${CT_BROKER:-auto}
-export CT_MT5_PATH="$MT5_EXE"
+export CT_WINE_PYTHON=${CT_WINE_PYTHON:-/mnt/data/mt5/drive_c/Python311/python.exe}
+export PYTHONPATH="Z:${ROOT}:${PYTHONPATH:+;$PYTHONPATH}"
+export CT_MT5_PATH=${CT_MT5_PATH:-'C:\Program Files\MetaTrader 5\terminal64.exe'}
 
 if [[ ! -f "$CT_UI_DIR/index.html" ]]; then
   echo "frontend/dist is missing; run: (cd frontend && npm ci && npm run build)" >&2
