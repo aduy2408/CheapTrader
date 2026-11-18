@@ -110,6 +110,7 @@ function settleOverrides(all: Record<string, LevelOverride>, ticket: number, seq
 
 // The opening page; scrolling loads older pages without a total depth limit.
 const INITIAL_BARS = 1_500;
+const CHART_TIMEZONE_OFFSET_HOURS = 7;
 
 const PLOT_COLORS = ["#2962ff", "#ff9800", "#e91e63", "#00bcd4", "#8bc34a", "#9c27b0"];
 
@@ -1920,7 +1921,7 @@ export default function App() {
               historyLoading={replayActive ? replay.historyLoading : liveHistoryLoading}
               hasMoreHistory={replayActive ? replay.state?.has_more_before !== false : frame.hasMoreHistory !== false}
               onLoadOlder={loadOlder}
-              utcOffsetHours={clock.offsetHours}
+              utcOffsetHours={CHART_TIMEZONE_OFFSET_HOURS}
               onFit={resetView}
             />
           </div>
