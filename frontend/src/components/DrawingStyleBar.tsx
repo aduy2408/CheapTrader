@@ -35,6 +35,7 @@ export function StyleBar({ drawing, view, trading, sizeInput, onStyle, onLock, o
   const lined = !box && drawing.type !== "text";
   const extendable = CAN_EXTEND.includes(drawing.type);
   const extended = !!style.extend_right;
+  const showLabels = style.show_labels !== false;
 
   return (
     <>
@@ -49,6 +50,17 @@ export function StyleBar({ drawing, view, trading, sizeInput, onStyle, onLock, o
       </button>
 
       {view && <SizeEditor drawing={drawing} view={view} trading={trading} inputRef={sizeInput} onStyle={onStyle} />}
+      {view && (
+        <button
+          className={showLabels ? "dr-tool on" : "dr-tool"}
+          title={showLabels ? "Hide position box labels" : "Show position box labels"}
+          aria-label={showLabels ? "Hide position box labels" : "Show position box labels"}
+          aria-pressed={showLabels}
+          onClick={() => onStyle({ show_labels: !showLabels })}
+        >
+          Aa
+        </button>
+      )}
 
       {!box && (
         <span className="dr-swatches">

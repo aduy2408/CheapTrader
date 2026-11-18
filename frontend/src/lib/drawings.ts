@@ -33,6 +33,8 @@ export interface DrawingStyle {
   extend_left?: boolean;
   text?: string;
   font_size?: number;
+  /** Show the labels inside a long / short position box. */
+  show_labels?: boolean;
   /** How big a trade a long / short box stands for (`risk_mode` says which of the three counts). */
   risk_mode?: "percent" | "amount" | "lots";
   risk_percent?: number;
@@ -408,27 +410,29 @@ export function layout(d: Drawing, m: Mapper, digits = 5, notes: string[] = []):
       prims.push(line(left, yEntry, left + w, yEntry, "#9598a1", 1, { hit: true }));
       prims.push(line(left, Math.min(yTp, ySl), left, Math.max(yTp, ySl), "#9598a1", 1, { hit: true }));
       prims.push(line(left + w, Math.min(yTp, ySl), left + w, Math.max(yTp, ySl), "#9598a1", 1, { hit: true }));
-      const pct = (p: number) => `${((p - entry.price) / (entry.price || 1) * 100).toFixed(2)}%`;
-      const risk = Math.abs(entry.price - stop.price);
-      const reward = Math.abs(target.price - entry.price);
-      const ratio = risk > 0 ? reward / risk : 0;
-      const fs = 12;
-      const tpUp = yTp < yEntry;
-      prims.push({
-        k: "text", x: left + 6, y: tpUp ? yTp + 15 : yTp - 6, color: "#5ee6cb", size: fs,
-        text: `Target ${formatPrice(target.price, digits)} (${pct(target.price)})`,
-      });
-      prims.push({
-        k: "text", x: left + 6, y: ySl > yEntry ? ySl - 6 : ySl + 15, color: "#ff8f99", size: fs,
-        text: `Stop ${formatPrice(stop.price, digits)} (${pct(stop.price)})`,
-      });
-      prims.push({
-        k: "text", x: left + w / 2, y: yEntry - 5, anchor: "middle", color: "#d1d4dc", size: fs,
-        text: `${d.type === "long" ? "Long" : "Short"} · R:R ${ratio.toFixed(2)}`,
-      });
-      notes.forEach((line, i) => {
-        prims.push({ k: "text", x: left + w / 2, y: yEntry + 14 + i * 14, anchor: "middle", color: "#b2b5be", size: 11, text: line });
-      });
+      if (s.show_labels !== false) {
+        const pct = (p: number) => `${((p - entry.price) / (entry.price || 1) * 100).toFixed(2)}%`;
+        const risk = Math.abs(entry.price - stop.price);
+        const reward = Math.abs(target.price - entry.price);
+        const ratio = risk > 0 ? reward / risk : 0;
+        const fs = 12;
+        const tpUp = yTp < yEntry;
+        prims.push({
+          k: "text", x: left + 6, y: tpUp ? yTp + 15 : yTp - 6, color: "#5ee6cb", size: fs,
+          text: `Target ${formatPrice(target.price, digits)} (${pct(target.price)})`,
+        });
+        prims.push({
+          k: "text", x: left + 6, y: ySl > yEntry ? ySl - 6 : ySl + 15, color: "#ff8f99", size: fs,
+          text: `Stop ${formatPrice(stop.price, digits)} (${pct(stop.price)})`,
+        });
+        prims.push({
+          k: "text", x: left + w / 2, y: yEntry - 5, anchor: "middle", color: "#d1d4dc", size: fs,
+          text: `${d.type === "long" ? "Long" : "Short"} · R:R ${ratio.toFixed(2)}`,
+        });
+        notes.forEach((line, i) => {
+          prims.push({ k: "text", x: left + w / 2, y: yEntry + 14 + i * 14, anchor: "middle", color: "#b2b5be", size: 11, text: line });
+        });
+      }
       handles.push(
         { id: "move", x: left, y: yEntry, cursor: "move" },
         { id: "w", x: left + w, y: yEntry, cursor: "ew-resize" },
