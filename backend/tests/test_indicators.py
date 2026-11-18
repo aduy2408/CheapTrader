@@ -1,6 +1,6 @@
 """Tests for the indicator sandbox and registry."""
 
-from __future__ import annotations
+from datetime import datetime, timedelta, timezone
 
 import pytest
 from fastapi.testclient import TestClient
@@ -10,7 +10,7 @@ from app.indicators.needs import MAX_INDICATOR_BARS, bars_to_load, declared_bars
 from app.indicators.registry import IndicatorRegistry
 from app.indicators.sandbox import run_indicator
 from app.main import app
-from app.schemas import IndicatorSpec, Timeframe
+from app.schemas import Bar, IndicatorSpec, Timeframe
 
 
 def _bars(count: int = 100):
@@ -101,6 +101,30 @@ def test_registry_crud(tmp_path) -> None:
     assert registry.delete("builtin.sma") is False
 
 
+
+def test_lit_sessions_shifts_with_new_york_dst() -> None:
+    spec = next(item for item in IndicatorRegistry().builtins() if item.id == "builtin.lit_sessions")
+    start = datetime(2025, 3, 8, tzinfo=timezone.utc)
+    bars = [
+        Bar(time=int((start + timedelta(minutes=15 * i)).timestamp()), open=1, high=2, low=0.5, close=1.5)
+        for i in range(300)
+    ]
+    result = run_indicator(
+        spec.id,
+        spec.name,
+        spec.code,
+        bars,
+        params={**spec.params, "days": 3, "show_levels": False},
+    )
+    assert result.error is None
+    starts = {
+        datetime.fromtimestamp(drawing["points"][0]["time"], timezone.utc).isoformat()
+        for drawing in result.drawings
+        if drawing["type"] == "rectangle"
+    }
+    assert "2025-03-08T23:00:00+00:00" in starts  # Asia stays fixed at UTC+7.
+    assert "2025-03-09T07:00:00+00:00" in starts  # London shifts one hour at DST.
+    assert "2025-03-09T13:00:00+00:00" in starts  # NY shifts one hour at DST.
 def test_a_bare_series_or_array_is_one_line() -> None:
     code = '''
 import numpy as np

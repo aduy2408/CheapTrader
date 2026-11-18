@@ -192,6 +192,115 @@ def compute(df, params):
     }
 ''',
     },
+    {
+        "id": "builtin.lit_sessions",
+        "name": "LIT Sessions",
+        "overlay": True,
+        "pane": 0,
+        "params": {
+            "days": 20,
+            "show_asia": True,
+            "show_london": True,
+            "show_pre_ny": True,
+            "show_ny": True,
+            "show_levels": True,
+        },
+        "code": '''"""LIT session boxes in UTC+7 with New York DST-aware windows."""
+
+from datetime import date, datetime, time, timedelta, timezone
+
+from ct_draw import hline, rectangle
+
+UTC7 = timezone(timedelta(hours=7))
+
+
+def _nth_sunday(year, month, n):
+    first = date(year, month, 1)
+    return first + timedelta(days=(6 - first.weekday()) % 7 + (n - 1) * 7)
+
+
+def _ny_dst(day):
+    return _nth_sunday(day.year, 3, 2) <= day < _nth_sunday(day.year, 11, 1)
+
+
+def _stamp(day, hour, minute):
+    return int(datetime.combine(day, time(hour, minute), UTC7).timestamp())
+
+
+def _sessions(day):
+    # The requested UTC+7 windows were taken from New York standard time.
+    # During NY daylight time, London, pre-NY and NY move one hour earlier.
+    shift = -1 if _ny_dst(day) else 0
+    return [
+        ("Asia", _stamp(day, 6, 0), _stamp(day, 12, 0), "#9800ff", "#9800ff", True),
+        ("London", _stamp(day, 15 + shift, 0), _stamp(day, 17 + shift, 30), "#434651", "#434651", False),
+        ("Pre-NY", _stamp(day, 19 + shift, 0), _stamp(day, 20 + shift, 30), "#787b86", "#787b86", False),
+        ("NY", _stamp(day, 21 + shift, 0), _stamp(day, 23 + shift, 30), "#434651", "#434651", False),
+    ]
+
+
+def _day(value):
+    return datetime.fromtimestamp(int(value), timezone.utc).astimezone(UTC7).date()
+
+
+def compute(df, params):
+    if df.empty:
+        return {"drawings": []}
+
+    latest = _day(df["time"].iloc[-1])
+    first = _day(df["time"].iloc[0])
+    requested = max(1, int(params.get("days", 20)))
+    first = max(first, latest - timedelta(days=requested - 1))
+    sessions = []
+    enabled = {
+        "Asia": bool(params.get("show_asia", True)),
+        "London": bool(params.get("show_london", True)),
+        "Pre-NY": bool(params.get("show_pre_ny", True)),
+        "NY": bool(params.get("show_ny", True)),
+    }
+
+    for offset in range((latest - first).days + 1):
+        day = first + timedelta(days=offset)
+        for name, start, end, line, fill, lines in _sessions(day):
+            if not enabled[name]:
+                continue
+            part = df[(df["time"] >= start) & (df["time"] < end)]
+            if part.empty:
+                continue
+            high = float(part["high"].max())
+            low = float(part["low"].min())
+            right = end if int(part["time"].iloc[-1]) >= end - 60 else int(part["time"].iloc[-1])
+            style = {
+                "color": line,
+                "fill": fill,
+                "fill_opacity": 0.12 if name == "Asia" else 0.08,
+                "text": name,
+            }
+            sessions.append(rectangle((start, high), (right, low), extend_right=right < end, **style))
+            if lines:
+                middle = (high + low) / 2
+                sessions.extend([
+                    {"type": "trendline", "points": [(start, high), (right, high)], "style": {"color": line, "width": 1}},
+                    {"type": "trendline", "points": [(start, middle), (right, middle)], "style": {"color": line, "dash": "dotted", "width": 1}},
+                    {"type": "trendline", "points": [(start, low), (right, low)], "style": {"color": line, "width": 1}},
+                ])
+
+    if bool(params.get("show_levels", True)):
+        days = {}
+        for row in df.itertuples():
+            days.setdefault(_day(row.time), []).append(row)
+        completed = sorted(day for day in days if day < latest)
+        if completed:
+            previous = days[completed[-1]]
+            sessions.extend([
+                hline(max(float(row.high) for row in previous), color="#30c1ec", dash="dotted", width=1),
+                hline(min(float(row.low) for row in previous), color="#30c1ec", dash="dotted", width=1),
+                hline(float(previous[-1].close), color="#787b86", dash="dashed", width=1),
+            ])
+
+    return {"drawings": sessions}
+''',
+    },
 ]
 
 
