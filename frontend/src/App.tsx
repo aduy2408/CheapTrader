@@ -1924,7 +1924,6 @@ export default function App() {
               onFit={resetView}
             />
           </div>
-          </div>
           {layout === "split" && (
             <div className="tv-chart-card">
               <ChartPane
@@ -1939,6 +1938,7 @@ export default function App() {
               />
             </div>
           )}
+          </div>
 
           {replayActive && replay.reportOpen && (
             <PerformanceReport
