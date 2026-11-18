@@ -76,6 +76,21 @@ then **Run anyway**. To check that your download is the one that was published, 
 `SHA256SUMS.txt` on the release page: `Get-FileHash .\CheapTrader-<version>-setup.exe -Algorithm SHA256`.
 
 More: **[Getting started](docs/GETTING_STARTED.md)** (including what to do when it does not connect).
+### Linux / Wine
+
+The source app runs natively on Linux. From a checkout, build the page once and start both CheapTrader and the
+MetaTrader terminal with:
+
+```bash
+(cd frontend && npm ci && npm run build)
+./run-linux.sh
+```
+
+`run-linux.sh` uses the existing `/mnt/data/mt5` Wine prefix and terminal path by default. Override them with
+`WINEPREFIX` and `CT_MT5_PATH`. The Linux Python environment cannot install the official Windows-only
+`MetaTrader5` package, so the app falls back to its synthetic broker until a Windows-compatible MT5 bridge is
+available; the terminal itself is still started directly through Wine, without Lutris.
+
 
 ## Updates
 
