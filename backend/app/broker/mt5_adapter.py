@@ -178,6 +178,13 @@ class MT5Adapter(BrokerAdapter):
         if not self._connected or self._mt5 is None:
             raise BrokerError("MT5 adapter is not connected")
 
+    def _ensure_symbol(self, symbol: str) -> None:
+        info = self._mt5.symbol_info(symbol)
+        if info is None:
+            raise BrokerError(f"MetaTrader does not know the symbol {symbol}")
+        if not getattr(info, "visible", True) and not self._mt5.symbol_select(symbol, True):
+            raise BrokerError(f"{symbol} could not be added to the Market Watch")
+
     # -- market data -------------------------------------------------------
     def list_symbols(self) -> list[Symbol]:
         self._require()
@@ -227,6 +234,7 @@ class MT5Adapter(BrokerAdapter):
         oldest first. (What the reader process sends over its pipe: numbers are much cheaper to
         ship than a model each.)"""
         self._require()
+        self._ensure_symbol(symbol)
         if TIMEFRAME_SECONDS[timeframe] < 60:
             return self._second_rows(symbol, timeframe, count, start, end)
         tf = self._tf(timeframe)
@@ -361,6 +369,7 @@ class MT5Adapter(BrokerAdapter):
 
     def get_tick(self, symbol: str) -> Tick | None:
         self._require()
+        self._ensure_symbol(symbol)
         t = self._mt5.symbol_info_tick(symbol)
         if t is None:
             return None
@@ -376,6 +385,7 @@ class MT5Adapter(BrokerAdapter):
 
     def get_ticks(self, symbol: str, start: datetime, count: int = 1000) -> list[Tick]:
         self._require()
+        self._ensure_symbol(symbol)
         ticks = self._mt5.copy_ticks_from(symbol, start, count, self._mt5.COPY_TICKS_ALL)
         if ticks is None:
             raise BrokerError(f"copy_ticks_from failed for {symbol}: {self._mt5.last_error()}")
