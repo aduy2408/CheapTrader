@@ -408,8 +408,6 @@ export function layout(d: Drawing, m: Mapper, digits = 5, notes: string[] = []):
       prims.push(line(left, yTp, left + w, yTp, tpColor, 1, { hit: true }));
       prims.push(line(left, ySl, left + w, ySl, slColor, 1, { hit: true }));
       prims.push(line(left, yEntry, left + w, yEntry, "#9598a1", 1, { hit: true }));
-      prims.push(line(left, Math.min(yTp, ySl), left, Math.max(yTp, ySl), "#9598a1", 1, { hit: true }));
-      prims.push(line(left + w, Math.min(yTp, ySl), left + w, Math.max(yTp, ySl), "#9598a1", 1, { hit: true }));
       if (s.show_labels !== false) {
         const pct = (p: number) => `${((p - entry.price) / (entry.price || 1) * 100).toFixed(2)}%`;
         const risk = Math.abs(entry.price - stop.price);

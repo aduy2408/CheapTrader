@@ -101,8 +101,8 @@ class DrawingStyle(BaseModel):
     fill_opacity: float | None = Field(default=None, ge=0, le=1)
     extend_right: bool | None = None
     extend_left: bool | None = None
-    text: str | None = Field(default=None, max_length=200)  # the words of a "text" drawing, or a label on any
     font_size: int | None = Field(default=None, ge=6, le=72)
+    show_labels: bool | None = None
     # How big a trade a long / short box stands for: a share of the balance at risk, an amount of money at
     # risk, or a plain number of lots (``risk_mode`` says which one counts).
     risk_mode: Literal["percent", "amount", "lots"] | None = None
