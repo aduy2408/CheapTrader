@@ -69,6 +69,20 @@ def build_snapshot(
             warm = _warm_up_bars(broker, request.symbol, request.timeframe, bars[0].time, extra)
             if warm:
                 run_over, show_from = warm + bars, bars[0].time
+        context = None
+        correlated_symbol = spec.params.get("correlated_symbol")
+        if correlated_symbol is not None:
+            try:
+                correlated = broker.get_bars(
+                    str(correlated_symbol).strip(),
+                    request.timeframe,
+                    start=_dt(run_over[0].time) if run_over else request.start,
+                    end=request.end,
+                ) if str(correlated_symbol).strip() else []
+                times = {bar.time for bar in run_over}
+                context = [bar for bar in correlated if bar.time in times]
+            except Exception:  # noqa: BLE001 - unavailable context is an indicator error
+                context = []
         result = run_indicator(
             indicator_id=spec.id,
             name=spec.name,
@@ -78,6 +92,7 @@ def build_snapshot(
             overlay=spec.overlay,
             pane=spec.pane,
             show_from=show_from,
+            context=context,
         )
         if result.error:
             continue

@@ -247,6 +247,8 @@ def main() -> int:
     df = pd.DataFrame(payload["bars"])
     params = payload.get("params", {})
     show_from = payload.get("show_from")
+    context_payload = payload.get("context")
+    context = pd.DataFrame(context_payload) if context_payload is not None else None
     times = [int(t) for t in df["time"].tolist()]
 
     _install_draw_helpers()
@@ -265,7 +267,8 @@ def main() -> int:
         if not hasattr(module, "compute"):
             raise ValueError("Indicator must define a compute(df, params) function")
 
-        result = module.compute(df, params)
+        compute = module.compute
+        result = compute(df, params, context) if context_payload is not None else compute(df, params)
         drawings: list[dict] = []
         if isinstance(result, dict) and "drawings" in result:
             result = dict(result)

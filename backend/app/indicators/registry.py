@@ -53,6 +53,11 @@ def checked_params(defaults: dict[str, Any], given: dict[str, Any]) -> dict[str,
     for key, value in given.items():
         if key not in defaults:
             raise IndicatorError(f"It has no parameter called {key!r} (its parameters: {', '.join(defaults)}).")
+        if key == "correlated_symbol":
+            if not isinstance(value, str) or not value.strip():
+                raise IndicatorError("correlated_symbol must be an explicit symbol string.")
+            out[key] = value.strip()
+            continue
         default = defaults[key]
         if isinstance(default, bool):
             if not isinstance(value, bool):
@@ -294,6 +299,81 @@ def compute(df, params):
 
 
     return {"drawings": sessions}
+''',
+    },
+    {
+        "id": "builtin.smt_divergence",
+        "name": "SMT Divergence",
+        "overlay": True,
+        "pane": 0,
+        "params": {
+            "correlated_symbol": "",
+            "sensitivity": 3,
+            "max_visible": 5,
+            "show_labels": True,
+            "show_symbol": True,
+            "bullish_color": "#26a69a",
+            "bearish_color": "#ef5350",
+            "real_time": False,
+        },
+        "code": '''"""SMT divergence against an explicitly selected correlated symbol."""
+
+from ct_draw import text, trendline
+
+
+def compute(df, params, context=None):
+    symbol = str(params.get("correlated_symbol", "")).strip()
+    if not symbol:
+        raise ValueError("correlated_symbol is required")
+    if context is None or context.empty:
+        raise ValueError("correlated symbol data is unavailable")
+
+    correlated = context.set_index("time")
+    primary = df.set_index("time")
+    common = primary.index.intersection(correlated.index)
+    if len(common) < 2:
+        raise ValueError("correlated symbol has no matching timestamps")
+    primary = primary.loc[common]
+    correlated = correlated.loc[common]
+    sensitivity = max(1, int(params.get("sensitivity", 3)))
+    max_visible = max(1, int(params.get("max_visible", 5)))
+    real_time = bool(params.get("real_time", False))
+
+    def pivots(values, want_low):
+        found = []
+        end = len(values) if real_time else len(values) - sensitivity
+        for i in range(sensitivity if not real_time else 0, end):
+            window = values.iloc[max(0, i - sensitivity):min(len(values), i + sensitivity + 1)]
+            value = values.iloc[i]
+            if value == (window.min() if want_low else window.max()):
+                found.append((int(values.index[i]), float(value)))
+        return found
+
+    events = []
+    for want_low, label, color in (
+        (True, "Bullish SMT", params.get("bullish_color", "#26a69a")),
+        (False, "Bearish SMT", params.get("bearish_color", "#ef5350")),
+    ):
+        piv = pivots(primary["low" if want_low else "high"], want_low)
+        for previous, current in zip(piv, piv[1:]):
+            if current[1] >= previous[1] if want_low else current[1] <= previous[1]:
+                continue
+            corr_values = correlated["low" if want_low else "high"]
+            if previous[0] not in corr_values.index or current[0] not in corr_values.index:
+                continue
+            corr_previous = float(corr_values.loc[previous[0]])
+            corr_current = float(corr_values.loc[current[0]])
+            if corr_current < corr_previous if want_low else corr_current > corr_previous:
+                continue
+            events.append((current[0], previous, current, label, color))
+
+    drawings = []
+    for _, previous, current, label, color in sorted(events, key=lambda event: event[0])[-max_visible:]:
+        drawings.append(trendline(previous, current, color=color, width=2))
+        if params.get("show_labels", True):
+            name = label + (" (" + symbol + ")" if params.get("show_symbol", True) else "")
+            drawings.append(text(current, name, color=color, show_labels=True))
+    return {"drawings": drawings}
 ''',
     },
 ]

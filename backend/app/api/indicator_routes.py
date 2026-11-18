@@ -89,6 +89,21 @@ def run(
             state.broker.adapter, symbol, timeframe, count=bars_to_load(count, declared_bars(spec.code))
         )
         show_from = bars[-count].time if len(bars) > count else None
+    context = None
+    correlated_symbol = spec.params.get("correlated_symbol")
+    if correlated_symbol is not None:
+        try:
+            correlated = state.cache.ensure_range(
+                state.broker.adapter,
+                str(correlated_symbol).strip(),
+                timeframe,
+                moment(bars[0].time),
+                moment(bars[-1].time),
+            ) if bars and str(correlated_symbol).strip() else []
+            times = {bar.time for bar in bars}
+            context = [bar for bar in correlated if bar.time in times]
+        except Exception:  # noqa: BLE001 - unavailable context is an indicator error
+            context = []
     result = run_indicator(
         indicator_id=spec.id,
         name=spec.name,
@@ -99,6 +114,7 @@ def run(
         pane=spec.pane,
         settings=state.settings,
         show_from=show_from,
+        context=context,
     )
     result.params = dict(spec.params)  # the legend shows them after the name
     return result

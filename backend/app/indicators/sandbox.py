@@ -108,6 +108,7 @@ def run_indicator(
     pane: int = 0,
     settings: Settings | None = None,
     show_from: int | None = None,
+    context: list[Bar] | None = None,
 ) -> IndicatorResult:
     """Execute an indicator over ``bars`` and return its plots.
 
@@ -127,6 +128,7 @@ def run_indicator(
                     "bars": [b.model_dump() for b in bars],
                     "params": params or {},
                     "show_from": show_from,
+                    "context": None if context is None else [b.model_dump() for b in context],
                 }
             ),
             encoding="utf-8",
