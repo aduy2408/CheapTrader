@@ -11,15 +11,19 @@ export function rowsFromParams(params: Record<string, unknown> | null | undefine
   return Object.entries(params ?? {}).map(([key, value]) => ({ key, value: String(value) }));
 }
 
-/** The parameters the rows say: a value that reads as a number is one, anything else stays text. Rows without a
- * name are left out. */
+/** The parameters the rows say: booleans and numbers are typed before other text values. Rows without a name are left out. */
 export function paramsFromRows(rows: ParamRow[]): Record<string, unknown> {
   const params: Record<string, unknown> = {};
   for (const { key, value } of rows) {
     const name = key.trim();
     if (!name) continue;
-    const number = Number(value);
-    params[name] = value.trim() !== "" && !Number.isNaN(number) ? number : value;
+    const text = value.trim();
+    if (text === "true" || text === "false") {
+      params[name] = text === "true";
+      continue;
+    }
+    const number = Number(text);
+    params[name] = text !== "" && !Number.isNaN(number) ? number : value;
   }
   return params;
 }

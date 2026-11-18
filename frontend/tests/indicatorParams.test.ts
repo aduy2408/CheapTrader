@@ -24,6 +24,13 @@ test("what was typed becomes numbers where it reads as one", () => {
   );
 });
 
+test("boolean parameters are sent as booleans", () => {
+  assert.deepEqual(paramsFromRows([
+    { key: "show_asia", value: "true" },
+    { key: "show_ny", value: "false" },
+  ]), { show_asia: true, show_ny: false });
+});
+
 test("parameters typed back to what they were are the same", () => {
   assert.equal(sameParams({ period: 20 }, { period: 20 }), true);
   assert.equal(sameParams({ period: "20" }, { period: 20 }), true);
