@@ -212,7 +212,7 @@ const formatChartTimeUtc7 = (time: Time): string => {
       : typeof time === "string"
         ? Date.parse(`${time}T00:00:00Z`) / 1000
         : Date.UTC(time.year, time.month - 1, time.day) / 1000;
-  const shifted = new Date(timestamp * 1000 + 7 * 3_600_000);
+  const shifted = new Date(timestamp * 1000 + 5 * 3_600_000);
   return `${String(shifted.getUTCHours()).padStart(2, "0")}:${String(shifted.getUTCMinutes()).padStart(2, "0")}`;
 };
 
