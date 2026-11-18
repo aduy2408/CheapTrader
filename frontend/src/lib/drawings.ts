@@ -162,7 +162,7 @@ export function dashOf(style: DrawingStyle, fallback: "solid" | "dashed" | "dott
 // -- defaults ---------------------------------------------------------------------------------
 export const DEFAULT_STYLE: Record<DrawingType, DrawingStyle> = {
   trendline: { color: BLUE, width: 2 },
-  rectangle: { color: BLUE, width: 1, fill: BLUE, fill_opacity: 0.15, extend_right: true },
+  rectangle: { color: BLUE, width: 1, fill: BLUE, fill_opacity: 0.15, extend_right: false },
   channel: { color: BLUE, width: 2, fill: BLUE, fill_opacity: 0.1 },
   long: { color: GREEN, width: 1 },
   short: { color: RED, width: 1 },

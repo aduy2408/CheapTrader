@@ -27,7 +27,7 @@ anywhere on the chart; double-click the grip to put it back. Where you leave it 
 | Trend line | A line through two points |
 | `S` Short position | A box for a trade that sells: stop above, target below |
 | `L` Long position | A box for a trade that buys: stop below, target above |
-| Rectangle | A box between two corners, **extended to the right** |
+| Rectangle | A box between two corners |
 | Parallel channel | Two parallel lines and the band between them |
 | Magnet | Snap new drawing points and dragged handles to nearby candle open, high, low or close prices (remembered) |
 | Eye | Hide / show all your drawings (the choice is remembered) |
@@ -53,9 +53,8 @@ drawing is finished, or until you press **Esc**.
 
 Esc steps back one stage: it drops a half-placed point, then disarms the tool, then deselects.
 
-The rectangle **extends to the right** by default, to the edge of the chart and on into the future, which
-is how a range or a zone is usually drawn. Its right side stays where you drew it, as a dotted line.
-Turn the extension off for a drawing in the bar that appears when it is selected (§1c).
+The rectangle stays between its two corners by default. Select it and click **Extend to the right** in the
+floating style bar when you want a zone that continues into the future.
 
 ### 1c. Selecting, moving, styling, deleting
 
@@ -196,7 +195,7 @@ Every key is optional.
 | `dash` | `"solid"`, `"dashed"`, `"dotted"` | lines and outlines |
 | `fill` | a colour; the default is `color` | `rectangle`, `channel` |
 | `fill_opacity` | `0` to `1` | `rectangle`, `channel` |
-| `extend_right` | `true` / `false` | `trendline`, `channel`, `rectangle` (**default `true`**) |
+| `extend_right` | `true` / `false` | `trendline`, `channel`, `rectangle` (default `false` for rectangles) |
 | `extend_left` | `true` / `false` | `trendline`, `channel` |
 | `text` | up to 200 characters | the words of a `text`; a label on an `hline` or `vline` |
 | `font_size` | `6` to `72` | `text`, and labels |

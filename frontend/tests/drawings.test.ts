@@ -68,20 +68,21 @@ test("a trend line can go on to the right, and to the left", () => {
   assert.ok(both.x1 <= -2000 && both.x2 >= 3000);
 });
 
-test("a rectangle is extended to the right unless told otherwise", () => {
-  const extended = rects(rect())[0];
-  assert.equal(extended.x, 20);
+test("a rectangle stays between its corners unless extended", () => {
+  const closed = rects(rect())[0];
+  assert.equal(closed.x, 20);
+  assert.equal(closed.x + closed.w, 40, "it ends at its right side");
+  assert.equal(lines(rect()).find((p) => p.x1 === p.x2 && near(p.x1, 40))!.dash, undefined);
+
+  const extended = rects(rect({ extend_right: true }))[0];
   assert.ok(extended.x + extended.w >= flat.width, "its fill reaches the right edge of the plot");
-  const top = lines(rect()).find((p) => p.y1 === p.y2 && near(p.y1, 100))!;
+  const top = lines(rect({ extend_right: true })).find((p) => p.y1 === p.y2 && near(p.y1, 100))!;
   assert.ok(top.x2 >= flat.width, "so do its top and bottom");
-  const side = lines(rect()).find((p) => p.x1 === p.x2 && near(p.x1, 40))!;
+  const side = lines(rect({ extend_right: true })).find((p) => p.x1 === p.x2 && near(p.x1, 40))!;
   assert.ok(side, "the right side stays where it was drawn");
   assert.equal(side.dash, "3 4", "...as a quiet dotted line");
-
-  const closed = rects(rect({ extend_right: false }))[0];
-  assert.equal(closed.x + closed.w, 40, "it ends at its right side");
-  assert.equal(lines(rect({ extend_right: false })).find((p) => p.x1 === p.x2 && near(p.x1, 40))!.dash, undefined);
 });
+
 
 test("a rectangle has a handle on each corner and side, whichever way round it was drawn", () => {
   const flipped: Drawing = { ...rect(), points: [{ time: 4000, price: 1.2 }, { time: 2000, price: 1.8 }] };
@@ -149,7 +150,7 @@ test("a drawing the chart cannot place yet draws nothing", () => {
 
 test("styles fall back to the defaults of their kind", () => {
   assert.equal(styleOf(trend()).width, 2);
-  assert.equal(styleOf(rect()).extend_right, true);
+  assert.equal(styleOf(rect()).extend_right, false);
   assert.equal(styleOf(rect({ extend_right: false })).extend_right, false);
   assert.equal(styleOf({ ...trend(), style: { color: null as unknown as string } }).color, "#2962ff", "a null from the server is no choice");
 });
@@ -224,7 +225,7 @@ test("what is being drawn is previewed with the pointer as its next point", () =
   assert.equal(line.id, "draft");
   const box = draft("rectangle", [{ time: 1, price: 1 }], { time: 5, price: 2 }, ctx)!;
   assert.equal(box.type, "rectangle");
-  assert.equal(box.style.extend_right, true, "the preview already looks like the result");
+  assert.equal(box.style.extend_right, false, "the preview already looks like the result");
   const base = draft("channel", [{ time: 1, price: 1 }, { time: 5, price: 2 }], { time: 9, price: 3 }, ctx)!;
   assert.equal(base.type, "channel");
   const half = draft("channel", [{ time: 1, price: 1 }], { time: 5, price: 2 }, ctx)!;
