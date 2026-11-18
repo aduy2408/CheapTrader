@@ -205,6 +205,17 @@ function toCandle(bar: Bar): CandlestickData<Time> {
 }
 
 export function createChartHandle(container: HTMLElement, initialAppearance: ChartAppearance = DEFAULT_APPEARANCE): ChartHandle {
+const formatChartTimeUtc7 = (time: Time): string => {
+  const timestamp =
+    typeof time === "number"
+      ? time
+      : typeof time === "string"
+        ? Date.parse(`${time}T00:00:00Z`) / 1000
+        : Date.UTC(time.year, time.month - 1, time.day) / 1000;
+  const shifted = new Date(timestamp * 1000 + 7 * 3_600_000);
+  return `${String(shifted.getUTCHours()).padStart(2, "0")}:${String(shifted.getUTCMinutes()).padStart(2, "0")}`;
+};
+
   const chart = createChart(container, {
     layout: {
       background: { color: TV.bg },
@@ -218,7 +229,7 @@ export function createChartHandle(container: HTMLElement, initialAppearance: Cha
         enableResize: true,
       },
     },
-    localization: { locale: "en-US" },
+    localization: { locale: "en-US", timeFormatter: formatChartTimeUtc7 },
     grid: {
       vertLines: { color: TV.grid },
       horzLines: { color: TV.grid },
@@ -236,10 +247,7 @@ export function createChartHandle(container: HTMLElement, initialAppearance: Cha
       borderVisible: false,
       timeVisible: true,
       secondsVisible: false,
-      tickMarkFormatter: (time: Time) => {
-        const shifted = new Date(Number(time) * 1000 + 7 * 3_600_000);
-        return `${String(shifted.getUTCHours()).padStart(2, "0")}:${String(shifted.getUTCMinutes()).padStart(2, "0")}`;
-      },
+      tickMarkFormatter: formatChartTimeUtc7,
       rightOffset: RIGHT_OFFSET,
       barSpacing: BAR_PX,
       fixLeftEdge: false,
