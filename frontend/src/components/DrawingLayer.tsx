@@ -311,7 +311,7 @@ export function DrawingController({
     let at = toPointer(e.clientX, e.clientY);
     if (!at) return;
     const s = now.current;
-    if (s.magnet && hold.handle !== "move" && s.geometry && at.x != null && at.y != null) {
+    if ((s.magnet || e.ctrlKey || e.metaKey) && hold.handle !== "move" && s.geometry && at.x != null && at.y != null) {
       const snapped = snapToCandle({ ...at, x: at.x, y: at.y }, s.bars, s.geometry);
       if (snapped) at = { ...at, ...snapped };
     }

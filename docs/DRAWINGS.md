@@ -131,6 +131,7 @@ drawing is removed by unlocking it first.
 point, a blue ring marks a nearby candle's open, high, low or close. A click uses that exact candle
 time and price; dragging a handle snaps it the same way. Points farther away stay free. Moving a
 whole drawing keeps its shape. During replay only the visible candles can attract a point.
+Hold **Ctrl** (or **Command** on macOS) while dragging a handle to snap temporarily, even when Magnet mode is off.
 
 ### 1g. What is remembered
 
