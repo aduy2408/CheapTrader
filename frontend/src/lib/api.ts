@@ -82,9 +82,9 @@ export const api = {
 
   // The endpoint caps a listing at 500 unless told otherwise, which would hide
   // part of a large broker's catalogue (indices, stocks, crypto…).
-  symbols: (query?: string) =>
+  symbols: (query?: string, limit = 500) =>
     request<Symbol[]>(
-      `/api/symbols?limit=20000${query ? `&query=${encodeURIComponent(query)}` : ""}`,
+      `/api/symbols?limit=${limit}${query ? `&query=${encodeURIComponent(query)}` : ""}`,
     ),
 
   bars: (symbol: string, timeframe: Timeframe, count = 500) =>

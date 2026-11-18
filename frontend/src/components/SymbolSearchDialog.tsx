@@ -7,9 +7,9 @@
 // Keyboard: type to filter, ↑ ↓ to move, Enter to open, Esc to close.
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { api } from "../lib/api";
 import type { Symbol } from "../lib/types";
 import { CloseIcon, SearchIcon, StarIcon } from "./Icons";
-
 interface Props {
   symbols: Symbol[];
   selected: string | null;
@@ -30,6 +30,7 @@ export function SymbolSearchDialog({
 }: Props) {
   const [query, setQuery] = useState("");
   const [active, setActive] = useState(0);
+  const [searchResults, setSearchResults] = useState<Symbol[] | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLUListElement>(null);
 
@@ -45,15 +46,29 @@ export function SymbolSearchDialog({
     return () => window.removeEventListener("keydown", onKey);
   }, [onClose]);
 
+  useEffect(() => {
+    const trimmed = query.trim();
+    if (!trimmed) {
+      setSearchResults(null);
+      return;
+    }
+    let cancelled = false;
+    const timer = window.setTimeout(() => {
+      void api.symbols(trimmed, 200).then(
+        (results) => { if (!cancelled) setSearchResults(results); },
+        () => { if (!cancelled) setSearchResults([]); },
+      );
+    }, 150);
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+    };
+  }, [query]);
+
   const matches = useMemo(() => {
-    const q = query.trim().toUpperCase();
-    const list = q
-      ? symbols.filter(
-          (s) => s.name.toUpperCase().includes(q) || s.description.toUpperCase().includes(q),
-        )
-      : symbols;
-    return list.slice(0, 200);
-  }, [symbols, query]);
+    const q = query.trim();
+    return (q ? searchResults ?? [] : symbols).slice(0, 200);
+  }, [symbols, query, searchResults]);
 
   // A new filter starts again from the best match.
   useEffect(() => setActive(0), [query]);
