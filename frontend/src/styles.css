@@ -171,6 +171,10 @@ textarea {
   height: 100%;
   cursor: crosshair;
 }
+.chart.cursor-arrow,
+.chart.cursor-arrow canvas {
+  cursor: default;
+}
 
 /* The next interval is on its way: the candles on screen dim a little, so the
    click is visibly taken, and ease back in when the new ones replace them. */
@@ -4728,4 +4732,155 @@ textarea {
   border-color: var(--ct-up);
   background: rgba(8, 153, 129, 0.16);
   color: #26d2a8;
+}
+
+/* chart appearance settings */
+.appearance-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  place-items: center;
+  background: rgba(0, 0, 0, 0.55);
+}
+.appearance {
+  display: flex;
+  flex-direction: column;
+  width: min(720px, calc(100vw - 24px));
+  max-height: min(720px, calc(100vh - 24px));
+  overflow: hidden;
+  background: #303030;
+  border: 1px solid #4a4a4a;
+  border-radius: 8px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.45);
+}
+.appearance-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 20px 14px;
+}
+.appearance-head h2 {
+  margin: 0;
+  color: #f0f0f0;
+  font-size: 20px;
+}
+.appearance-close {
+  color: #aaa;
+  font-size: 28px;
+  line-height: 1;
+}
+.appearance-close:hover {
+  color: #fff;
+}
+.appearance-body {
+  display: grid;
+  grid-template-columns: 190px 1fr;
+  min-height: 360px;
+  overflow: auto;
+}
+.appearance-tabs {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 4px 12px 16px;
+}
+.appearance-tabs button {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 14px;
+  border-radius: 6px;
+  color: #aaa;
+  font-size: 14px;
+  text-align: left;
+}
+.appearance-tabs button.active,
+.appearance-tabs button:hover {
+  background: #202020;
+  color: #fff;
+}
+.appearance-tabs button:first-child {
+  font-size: 19px;
+}
+.appearance-tabs button span {
+  font-size: 14px;
+}
+.appearance-fields {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  align-content: start;
+  gap: 14px 28px;
+  padding: 8px 24px 24px 10px;
+}
+.appearance-fields h3 {
+  grid-column: 1 / -1;
+  margin: 0 0 2px;
+  color: #aaa;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.appearance-fields label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: 34px;
+  color: #ddd;
+  font-size: 13px;
+}
+.appearance-fields input[type="color"] {
+  width: 40px;
+  height: 30px;
+  padding: 3px;
+  background: #262626;
+  border: 1px solid #5b5b5b;
+  border-radius: 5px;
+  cursor: pointer;
+}
+.appearance-fields select {
+  min-width: 145px;
+  height: 32px;
+  padding: 0 8px;
+  background: #252525;
+  border: 1px solid #555;
+  border-radius: 5px;
+  color: #ddd;
+}
+.appearance-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 14px 20px;
+  border-top: 1px solid #484848;
+}
+.appearance-cancel,
+.appearance-save {
+  min-width: 76px;
+  height: 36px;
+  padding: 0 16px;
+  border: 1px solid #777;
+  border-radius: 6px;
+}
+.appearance-save {
+  background: #f2f2f2;
+  border-color: #f2f2f2;
+  color: #242424;
+}
+.appearance-cancel:hover {
+  background: #454545;
+}
+.appearance-save:hover {
+  background: #fff;
+}
+@media (max-width: 620px) {
+  .appearance-body {
+    grid-template-columns: 130px 1fr;
+  }
+  .appearance-fields {
+    grid-template-columns: 1fr;
+    padding-right: 14px;
+  }
 }

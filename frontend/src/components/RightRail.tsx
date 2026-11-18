@@ -7,7 +7,7 @@
 
 import { useState } from "react";
 import { useDismiss } from "../lib/hooks";
-import { BookIcon, HeartIcon, HelpIcon, WatchlistIcon } from "./Icons";
+import { BookIcon, HeartIcon, HelpIcon, SettingsIcon, WatchlistIcon } from "./Icons";
 
 const SHORTCUTS: [string, string][] = [
   ["F", "Fit chart to screen"],
@@ -32,9 +32,11 @@ interface Props {
   onTour: () => void;
   /** Open the About window (credits, support). */
   onAbout: () => void;
+  /** Open chart appearance settings. */
+  onAppearance: () => void;
 }
 
-export function RightRail({ watchlistOpen, onToggleWatchlist, onDocs, onTour, onAbout }: Props) {
+export function RightRail({ watchlistOpen, onToggleWatchlist, onDocs, onTour, onAbout, onAppearance }: Props) {
   const [helpOpen, setHelpOpen] = useState(false);
   const helpRef = useDismiss<HTMLDivElement>(() => setHelpOpen(false), helpOpen);
 
@@ -48,6 +50,10 @@ export function RightRail({ watchlistOpen, onToggleWatchlist, onDocs, onTour, on
       >
         <WatchlistIcon />
       </button>
+      <button className="tv-rail-btn" title="Chart appearance settings" onClick={onAppearance}>
+        <SettingsIcon />
+      </button>
+
 
       <span className="tv-rail-fill" />
 

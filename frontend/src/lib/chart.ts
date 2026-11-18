@@ -24,6 +24,7 @@ import { barAt, canPatchTail, firstDifference, nearestIndex } from "./barMath";
 import { needsHistory } from "./history";
 import { loadPersisted, savePersisted } from "./persist";
 import type { Bar } from "./types";
+import { DEFAULT_APPEARANCE, type ChartAppearance } from "./appearance";
 
 /**
  * What a new set of bars does to the view (the part of the series on screen):
@@ -146,6 +147,7 @@ export type ChartHandle = {
   setPriceLines: (specs: PriceLineSpec[]) => void;
   setIndicators: (plots: IndicatorPlot[]) => void;
   setPriceFormat: (digits: number, point: number) => void;
+  setAppearance: (appearance: ChartAppearance) => void;
   setLegendMeta: (meta: { symbol: string; timeframe: string; digits: number }) => void;
   /** Seconds one bar takes at the current interval (places times past the newest bar). */
   setBarSeconds: (seconds: number) => void;
@@ -197,7 +199,7 @@ function toCandle(bar: Bar): CandlestickData<Time> {
   };
 }
 
-export function createChartHandle(container: HTMLElement): ChartHandle {
+export function createChartHandle(container: HTMLElement, initialAppearance: ChartAppearance = DEFAULT_APPEARANCE): ChartHandle {
   const chart = createChart(container, {
     layout: {
       background: { color: TV.bg },
@@ -269,6 +271,41 @@ export function createChartHandle(container: HTMLElement): ChartHandle {
     priceLineWidth: 1,
     lastValueVisible: false,
   });
+  function setAppearance(appearance: ChartAppearance) {
+    chart.applyOptions({
+      layout: {
+        background: { color: appearance.background },
+        textColor: appearance.text,
+      },
+      grid: {
+        vertLines: { color: appearance.grid },
+        horzLines: { color: appearance.grid },
+      },
+      crosshair: {
+        vertLine: {
+          color: appearance.crosshair,
+          style: appearance.crosshairStyle,
+          labelBackgroundColor: appearance.crosshairLabel,
+        },
+        horzLine: {
+          color: appearance.crosshair,
+          style: appearance.crosshairStyle,
+          labelBackgroundColor: appearance.crosshairLabel,
+        },
+      },
+      rightPriceScale: { borderColor: appearance.scaleLines },
+      timeScale: { borderColor: appearance.scaleLines },
+    });
+    series.applyOptions({
+      upColor: appearance.up,
+      downColor: appearance.down,
+      borderUpColor: appearance.up,
+      borderDownColor: appearance.down,
+      wickUpColor: appearance.wickUp,
+      wickDownColor: appearance.wickDown,
+    });
+  }
+  setAppearance(initialAppearance);
 
 
   // -- time <-> bar index --------------------------------------------------
@@ -971,6 +1008,7 @@ export function createChartHandle(container: HTMLElement): ChartHandle {
     setPriceLines,
     setIndicators,
     setPriceFormat,
+    setAppearance,
     setLegendMeta(meta) {
       legendMeta = meta;
     },

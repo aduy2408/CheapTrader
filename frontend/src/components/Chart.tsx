@@ -10,6 +10,7 @@ import {
   type ViewHint,
   type ViewPolicy,
 } from "../lib/chart";
+import type { ChartAppearance } from "../lib/appearance";
 import type { Bar } from "../lib/types";
 
 interface Props {
@@ -23,6 +24,7 @@ interface Props {
   timeframe?: string;
   /** Seconds one candle takes (so drawings can be placed past the newest one). */
   barSeconds?: number;
+  appearance: ChartAppearance;
   /** What replacing `bars` does to the view; see ViewPolicy. */
   view?: ViewPolicy;
   /** The candles on screen are about to be replaced: show them dimmed meanwhile. */
@@ -65,6 +67,7 @@ export function Chart({
   symbol,
   timeframe,
   barSeconds,
+  appearance,
   view = "latest",
   loading = false,
   fitSignal,
@@ -179,10 +182,15 @@ export function Chart({
     if (fitSignal !== undefined) handleRef.current?.fitContent();
   }, [fitSignal]);
 
+  useEffect(() => {
+    handleRef.current?.setAppearance(appearance);
+  }, [appearance]);
+
   return (
     <div
       ref={containerRef}
-      className={loading ? "chart is-loading" : "chart"}
+      className={`${loading ? "chart is-loading" : "chart"}${appearance.cursor === "default" ? " cursor-arrow" : ""}`}
+      style={{ cursor: appearance.cursor }}
       aria-busy={loading}
       data-testid="chart-canvas"
     />

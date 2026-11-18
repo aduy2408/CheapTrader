@@ -32,11 +32,14 @@ import type {
   ViewHint,
   ViewPolicy,
 } from "./lib/chart";
+import type { ChartAppearance } from "./lib/appearance";
+import { DEFAULT_APPEARANCE } from "./lib/appearance";
 import { Chart } from "./components/Chart";
 import { ChartBoundary } from "./components/ChartBoundary";
 import { ChartContextMenu, type ContextMenuItem } from "./components/ChartContextMenu";
 import { ChartLegend, type LegendIndicator, type LegendTrade } from "./components/ChartLegend";
 import { AboutDialog } from "./components/AboutDialog";
+import { AppearanceDialog } from "./components/AppearanceDialog";
 import { UpdateDialog } from "./components/UpdateDialog";
 import { DocsDialog } from "./components/DocsDialog";
 import { DrawingController } from "./components/DrawingLayer";
@@ -174,6 +177,8 @@ export default function App() {
   const [pinnedSymbols, setPinnedSymbols] = usePersistentState<string[]>("pinnedSymbols", []);
   const [searchOpen, setSearchOpen] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [appearance, setAppearance] = usePersistentState<ChartAppearance>("chartAppearance", DEFAULT_APPEARANCE);
+  const [appearanceOpen, setAppearanceOpen] = useState(false);
 
   const [panel, setPanel] = usePersistentState<DockTab>("panel", "trade");
   const [activeIndicators, setActiveIndicators] = usePersistentState<string[]>(
@@ -1711,6 +1716,7 @@ export default function App() {
                 liveBar={liveBar}
                 priceLines={priceLines}
                 indicatorPlots={shownPlots}
+                appearance={appearance}
                 digits={shownSymbol?.digits}
                 point={shownSymbol?.point}
                 symbol={frame.symbol ?? undefined}
@@ -1962,6 +1968,7 @@ export default function App() {
           onDocs={() => setDocs("getting_started")}
           onTour={() => setTour(0)}
           onAbout={() => setAbout(true)}
+          onAppearance={() => setAppearanceOpen(true)}
         />
       </div>
 
@@ -2030,6 +2037,13 @@ export default function App() {
       )}
 
       {docs !== null && <DocsDialog initial={docs} onClose={() => setDocs(null)} />}
+      {appearanceOpen && (
+        <AppearanceDialog
+          value={appearance}
+          onClose={() => setAppearanceOpen(false)}
+          onSave={setAppearance}
+        />
+      )}
 
       {searchOpen && (
         <SymbolSearchDialog
