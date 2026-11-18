@@ -22,6 +22,8 @@ interface Props {
   point?: number;
   symbol?: string;
   timeframe?: string;
+  /** Charts in the same group share their crosshair time. */
+  crosshairGroup?: string;
   /** Seconds one candle takes (so drawings can be placed past the newest one). */
   barSeconds?: number;
   appearance: ChartAppearance;
@@ -66,6 +68,7 @@ export function Chart({
   point,
   symbol,
   timeframe,
+  crosshairGroup,
   barSeconds,
   appearance,
   view = "latest",
@@ -89,6 +92,10 @@ export function Chart({
   const clickRef = useRef(onBarClick);
   const hoverRef = useRef(onHover);
   const historyRef = useRef(onHistoryNeeded);
+  const crosshairGroupRef = useRef(crosshairGroup);
+  crosshairGroupRef.current = crosshairGroup;
+  const crosshairSource = useRef({});
+  const remoteCrosshair = useRef(false);
   historyRef.current = onHistoryNeeded;
   dragRef.current = onLineDrag;
   dragEndRef.current = onLineDragEnd;
@@ -113,6 +120,23 @@ export function Chart({
     const offLegend = handle.onLegend((values) => legendRef.current?.(values));
     const offClick = handle.onClick((time) => clickRef.current?.(time));
     const offHover = handle.onHover((hover) => hoverRef.current?.(hover));
+    const offCrosshair = handle.onCrosshair((time) => {
+      const group = crosshairGroupRef.current;
+      if (!group || remoteCrosshair.current) return;
+      window.dispatchEvent(new CustomEvent("cheaptrader-crosshair", {
+        detail: { group, source: crosshairSource.current, time },
+      }));
+    });
+    const receiveCrosshair = (event: Event) => {
+      const detail = (event as CustomEvent<{ group?: string; source?: object; time?: number | null }>).detail;
+      if (!detail || detail.group !== crosshairGroupRef.current || detail.source === crosshairSource.current) return;
+      remoteCrosshair.current = true;
+      handle.setCrosshairTime(detail.time ?? null);
+      window.requestAnimationFrame(() => {
+        remoteCrosshair.current = false;
+      });
+    };
+    window.addEventListener("cheaptrader-crosshair", receiveCrosshair);
     const offHistory = handle.onHistoryNeeded(() => historyRef.current?.());
     return () => {
       offDrag();
@@ -120,6 +144,8 @@ export function Chart({
       offLegend();
       offClick();
       offHover();
+      offCrosshair();
+      window.removeEventListener("cheaptrader-crosshair", receiveCrosshair);
       offHistory();
       handle.destroy();
       handleRef.current = null;

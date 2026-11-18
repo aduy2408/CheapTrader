@@ -128,6 +128,7 @@ export interface HoverInfo {
   x: number;
   y: number;
 }
+export type CrosshairHandler = (time: number | null) => void;
 export type HoverHandler = (hover: HoverInfo | null) => void;
 
 export type ChartHandle = {
@@ -160,6 +161,10 @@ export type ChartHandle = {
   onLegend: (handler: LegendHandler) => () => void;
   /** Fired as the pointer moves over the candles, and with null when it leaves them. */
   onHover: (handler: HoverHandler) => () => void;
+  /** Fired when the crosshair time changes, including null when it leaves. */
+  onCrosshair: (handler: CrosshairHandler) => () => void;
+  /** Place the crosshair on the nearest loaded candle at this time. */
+  setCrosshairTime: (time: number | null) => void;
   onHistoryNeeded: (handler: () => void) => () => void;
   destroy: () => void;
 };
@@ -283,11 +288,13 @@ export function createChartHandle(container: HTMLElement, initialAppearance: Cha
       },
       crosshair: {
         vertLine: {
+          visible: appearance.crosshairAxis !== "horizontal",
           color: appearance.crosshair,
           style: appearance.crosshairStyle,
           labelBackgroundColor: appearance.crosshairLabel,
         },
         horzLine: {
+          visible: appearance.crosshairAxis !== "vertical",
           color: appearance.crosshair,
           style: appearance.crosshairStyle,
           labelBackgroundColor: appearance.crosshairLabel,
@@ -936,11 +943,26 @@ export function createChartHandle(container: HTMLElement, initialAppearance: Cha
   };
   chart.timeScale().subscribeVisibleLogicalRangeChange(checkHistory);
 
+  const crosshairHandlers = new Set<CrosshairHandler>();
+  const onCrosshairMove = (param: Parameters<Parameters<IChartApi["subscribeCrosshairMove"]>[0]>[0]) => {
+    const time = param.time == null ? null : Number(param.time);
+    for (const h of crosshairHandlers) h(time);
+  };
+  chart.subscribeCrosshairMove(onCrosshairMove);
   const clickHandlers = new Set<ClickHandler>();
   chart.subscribeClick((param) => {
     if (param.time == null) return;
     for (const h of clickHandlers) h(param.time as number);
   });
+  function setCrosshairTime(time: number | null) {
+    if (time == null) {
+      chart.clearCrosshairPosition();
+      return;
+    }
+    if (!lastBars.length) return;
+    const bar = lastBars[nearestIndex(lastBars, time)];
+    chart.setCrosshairPosition(bar.close, time as Time, series);
+  }
 
   return {
     chart,
@@ -1056,6 +1078,11 @@ export function createChartHandle(container: HTMLElement, initialAppearance: Cha
       hoverHandlers.add(handler);
       return () => hoverHandlers.delete(handler);
     },
+    onCrosshair(handler: CrosshairHandler) {
+      crosshairHandlers.add(handler);
+      return () => crosshairHandlers.delete(handler);
+    },
+    setCrosshairTime,
     onHistoryNeeded(handler) {
       historyHandlers.add(handler);
       checkHistory();
@@ -1064,6 +1091,7 @@ export function createChartHandle(container: HTMLElement, initialAppearance: Cha
     destroy() {
       window.cancelAnimationFrame(historyFrame);
       chart.timeScale().unsubscribeVisibleLogicalRangeChange(checkHistory);
+      chart.unsubscribeCrosshairMove(onCrosshairMove);
       container.removeEventListener("pointerdown", onPointerDown);
       container.removeEventListener("pointermove", onPointerMove);
       container.removeEventListener("dblclick", onDoubleClick);

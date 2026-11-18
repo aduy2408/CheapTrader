@@ -71,6 +71,7 @@ export function ChartPane({
             priceLines={[]}
             indicatorPlots={[]}
             appearance={appearance}
+            crosshairGroup="main"
             symbol={frame.symbol ?? undefined}
             timeframe={TF[frame.timeframe].legend}
             barSeconds={TF[frame.timeframe].seconds}

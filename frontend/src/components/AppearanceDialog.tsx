@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { DEFAULT_APPEARANCE, DEFAULT_TOOL_APPEARANCE, type ChartAppearance, type CrosshairStyle } from "../lib/appearance";
+import { DEFAULT_APPEARANCE, DEFAULT_TOOL_APPEARANCE, type ChartAppearance, type CrosshairAxis, type CrosshairStyle } from "../lib/appearance";
 
 interface Props {
   value: ChartAppearance;
@@ -56,6 +56,13 @@ export function AppearanceDialog({ value, onClose, onSave }: Props) {
               <label>Crosshair style
                 <select value={draft.crosshairStyle} onChange={(e) => set("crosshairStyle", Number(e.target.value) as CrosshairStyle)}>
                   {crosshairStyles.map((style) => <option key={style.value} value={style.value}>{style.label}</option>)}
+                </select>
+              </label>
+              <label>Crosshair orientation
+                <select value={draft.crosshairAxis} onChange={(e) => set("crosshairAxis", e.target.value as CrosshairAxis)}>
+                  <option value="both">Vertical + horizontal</option>
+                  <option value="vertical">Vertical only</option>
+                  <option value="horizontal">Horizontal only</option>
                 </select>
               </label>
               <label>Mouse cursor

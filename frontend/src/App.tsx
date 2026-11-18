@@ -1774,6 +1774,7 @@ export default function App() {
                 priceLines={priceLines}
                 indicatorPlots={shownPlots}
                 appearance={appearance}
+                crosshairGroup="main"
                 digits={shownSymbol?.digits}
                 point={shownSymbol?.point}
                 symbol={frame.symbol ?? undefined}
