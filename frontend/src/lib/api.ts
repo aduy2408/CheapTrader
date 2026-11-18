@@ -84,7 +84,7 @@ export const api = {
   // part of a large broker's catalogue (indices, stocks, crypto…).
   symbols: (query?: string) =>
     request<Symbol[]>(
-      `/api/symbols?limit=5000${query ? `&query=${encodeURIComponent(query)}` : ""}`,
+      `/api/symbols?limit=20000${query ? `&query=${encodeURIComponent(query)}` : ""}`,
     ),
 
   bars: (symbol: string, timeframe: Timeframe, count = 500) =>

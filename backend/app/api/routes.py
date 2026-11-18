@@ -71,7 +71,7 @@ def data_stats() -> list[dict]:
 @router.get("/symbols", response_model=list[Symbol])
 def list_symbols(
     query: str | None = None,
-    limit: int = Query(default=500, le=5000),
+    limit: int = Query(default=500, le=20000),
 ) -> list[Symbol]:
     state = get_state()
     if query:
