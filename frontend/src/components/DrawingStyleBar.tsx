@@ -63,13 +63,21 @@ export function StyleBar({ drawing, view, trading, sizeInput, onStyle, onLock, o
       )}
       {view && (
         <span className="dr-box-colors" aria-label="Position box colors">
-          <label title="Target line and fill">
+          <label title="Target line">
             <span>TP</span>
             <input type="color" value={style.target_color ?? "#089981"} onChange={(e) => onStyle({ target_color: e.target.value })} />
           </label>
-          <label title="Stop line and fill">
+          <label title="Target section">
+            <span>TP fill</span>
+            <input type="color" value={style.target_fill ?? style.target_color ?? "#089981"} onChange={(e) => onStyle({ target_fill: e.target.value })} />
+          </label>
+          <label title="Stop line">
             <span>SL</span>
             <input type="color" value={style.stop_color ?? "#f23645"} onChange={(e) => onStyle({ stop_color: e.target.value })} />
+          </label>
+          <label title="Stop section">
+            <span>SL fill</span>
+            <input type="color" value={style.stop_fill ?? style.stop_color ?? "#f23645"} onChange={(e) => onStyle({ stop_fill: e.target.value })} />
           </label>
           <label title="Entry line">
             <span>EN</span>

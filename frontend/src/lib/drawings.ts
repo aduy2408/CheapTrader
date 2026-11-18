@@ -38,6 +38,8 @@ export interface DrawingStyle {
   target_color?: string;
   stop_color?: string;
   entry_color?: string;
+  target_fill?: string;
+  stop_fill?: string;
   /** How big a trade a long / short box stands for (`risk_mode` says which of the three counts). */
   risk_mode?: "percent" | "amount" | "lots";
   risk_percent?: number;
@@ -406,9 +408,11 @@ export function layout(d: Drawing, m: Mapper, digits = 5, notes: string[] = []):
       const tpColor = s.target_color ?? GREEN;
       const slColor = s.stop_color ?? RED;
       const entryColor = s.entry_color ?? "#9598a1";
+      const tpFill = s.target_fill ?? tpColor;
+      const slFill = s.stop_fill ?? slColor;
       // the words sit on the tinted boxes, so they are lighter than the lines
-      prims.push({ k: "rect", x: left, y: Math.min(yEntry, yTp), w, h: Math.abs(yTp - yEntry), fill: tpColor, fillOpacity: 0.18, hit: true });
-      prims.push({ k: "rect", x: left, y: Math.min(yEntry, ySl), w, h: Math.abs(ySl - yEntry), fill: slColor, fillOpacity: 0.18, hit: true });
+      prims.push({ k: "rect", x: left, y: Math.min(yEntry, yTp), w, h: Math.abs(yTp - yEntry), fill: tpFill, fillOpacity: 0.18, hit: true });
+      prims.push({ k: "rect", x: left, y: Math.min(yEntry, ySl), w, h: Math.abs(ySl - yEntry), fill: slFill, fillOpacity: 0.18, hit: true });
       prims.push(line(left, yTp, left + w, yTp, tpColor, 1, { hit: true }));
       prims.push(line(left, ySl, left + w, ySl, slColor, 1, { hit: true }));
       prims.push(line(left, yEntry, left + w, yEntry, entryColor, 1, { hit: true }));

@@ -106,6 +106,8 @@ class DrawingStyle(BaseModel):
     target_color: str | None = Field(default=None, max_length=32)
     stop_color: str | None = Field(default=None, max_length=32)
     entry_color: str | None = Field(default=None, max_length=32)
+    target_fill: str | None = Field(default=None, max_length=32)
+    stop_fill: str | None = Field(default=None, max_length=32)
     # risk, or a plain number of lots (``risk_mode`` says which one counts).
     risk_mode: Literal["percent", "amount", "lots"] | None = None
     risk_percent: float | None = Field(default=None, gt=0, le=100)
