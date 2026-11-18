@@ -236,6 +236,10 @@ export function createChartHandle(container: HTMLElement, initialAppearance: Cha
       borderVisible: false,
       timeVisible: true,
       secondsVisible: false,
+      tickMarkFormatter: (time: Time) => {
+        const shifted = new Date(Number(time) * 1000 + 7 * 3_600_000);
+        return `${String(shifted.getUTCHours()).padStart(2, "0")}:${String(shifted.getUTCMinutes()).padStart(2, "0")}`;
+      },
       rightOffset: RIGHT_OFFSET,
       barSpacing: BAR_PX,
       fixLeftEdge: false,
