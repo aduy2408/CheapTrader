@@ -203,13 +203,20 @@ def compute(df, params):
             "show_london": True,
             "show_pre_ny": True,
             "show_ny": True,
-            "show_levels": True,
+            "asia_color": "#b79bd3",
+            "london_color": "#eee9c9",
+            "pre_ny_color": "#e9eef0",
+            "ny_color": "#cce5d7",
+            "asia_opacity": 32,
+            "london_opacity": 32,
+            "pre_ny_opacity": 32,
+            "ny_opacity": 32,
         },
         "code": '''"""LIT session boxes in UTC+7 with New York DST-aware windows."""
 
 from datetime import date, datetime, time, timedelta, timezone
 
-from ct_draw import hline, rectangle
+from ct_draw import rectangle
 
 UTC7 = timezone(timedelta(hours=7))
 
@@ -227,15 +234,15 @@ def _stamp(day, hour, minute):
     return int(datetime.combine(day, time(hour, minute), UTC7).timestamp())
 
 
-def _sessions(day):
+def _sessions(day, colors):
     # The requested UTC+7 windows were taken from New York standard time.
     # During NY daylight time, London, pre-NY and NY move one hour earlier.
     shift = -1 if _ny_dst(day) else 0
     return [
-        ("Asia", _stamp(day, 6, 0), _stamp(day, 12, 0), "#b79bd3", "#b79bd3", False),
-        ("London", _stamp(day, 15 + shift, 0), _stamp(day, 17 + shift, 30), "#eee9c9", "#eee9c9", False),
-        ("Pre-NY", _stamp(day, 19 + shift, 0), _stamp(day, 20 + shift, 30), "#e9eef0", "#e9eef0", False),
-        ("NY", _stamp(day, 21 + shift, 0), _stamp(day, 23 + shift, 30), "#cce5d7", "#cce5d7", False),
+        ("Asia", _stamp(day, 6, 0), _stamp(day, 12, 0), *colors["asia"]),
+        ("London", _stamp(day, 15 + shift, 0), _stamp(day, 17 + shift, 30), *colors["london"]),
+        ("Pre-NY", _stamp(day, 19 + shift, 0), _stamp(day, 20 + shift, 30), *colors["pre_ny"]),
+        ("NY", _stamp(day, 21 + shift, 0), _stamp(day, 23 + shift, 30), *colors["ny"]),
     ]
 
 
@@ -258,10 +265,16 @@ def compute(df, params):
         "Pre-NY": bool(params.get("show_pre_ny", True)),
         "NY": bool(params.get("show_ny", True)),
     }
+    colors = {
+        "asia": (params.get("asia_color", "#b79bd3"), max(0, min(100, int(params.get("asia_opacity", 32)))) / 100),
+        "london": (params.get("london_color", "#eee9c9"), max(0, min(100, int(params.get("london_opacity", 32)))) / 100),
+        "pre_ny": (params.get("pre_ny_color", "#e9eef0"), max(0, min(100, int(params.get("pre_ny_opacity", 32)))) / 100),
+        "ny": (params.get("ny_color", "#cce5d7"), max(0, min(100, int(params.get("ny_opacity", 32)))) / 100),
+    }
 
     for offset in range((latest - first).days + 1):
         day = first + timedelta(days=offset)
-        for name, start, end, line, fill, lines in _sessions(day):
+        for name, start, end, fill, opacity in _sessions(day, colors):
             if not enabled[name]:
                 continue
             part = df[(df["time"] >= start) & (df["time"] < end)]
@@ -273,36 +286,12 @@ def compute(df, params):
             active = start <= last_time < end
             right = last_time if active else end
             style = {
-                "color": line,
+                "color": "#00000000",
                 "fill": fill,
-                "fill_opacity": 0.32,
-                "text": name,
+                "fill_opacity": opacity,
             }
             sessions.append(rectangle((start, high), (right, low), extend_right=active, **style))
 
-    if bool(params.get("show_levels", True)):
-        days = {}
-        for row in df.itertuples():
-            days.setdefault(_day(row.time), []).append(row)
-        completed = sorted(day for day in days if day < latest)
-        if completed:
-            previous = days[completed[-1]]
-            sessions.extend([
-                hline(max(float(row.high) for row in previous), color="#30c1ec", dash="dotted", width=1),
-                hline(min(float(row.low) for row in previous), color="#30c1ec", dash="dotted", width=1),
-                hline(float(previous[-1].close), color="#787b86", dash="dashed", width=1),
-            ])
-        weeks = {}
-        for day, rows in days.items():
-            weeks.setdefault(day - timedelta(days=day.weekday()), []).extend(rows)
-        current_week = latest - timedelta(days=latest.weekday())
-        completed_weeks = sorted(week for week in weeks if week < current_week)
-        if completed_weeks:
-            previous_week = weeks[completed_weeks[-1]]
-            sessions.extend([
-                hline(max(float(row.high) for row in previous_week), color="#00a86b", dash="dotted", width=1),
-                hline(min(float(row.low) for row in previous_week), color="#f23645", dash="dotted", width=1),
-            ])
 
     return {"drawings": sessions}
 ''',

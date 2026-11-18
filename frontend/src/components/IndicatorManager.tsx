@@ -285,6 +285,10 @@ export function IndicatorManager({ activeIds, onToggle, onChanged, onDocs, editR
                     onChange={(e) => setParam(i, { key: e.target.value })}
                   />
                   <input
+                    type={p.key.endsWith("_color") && /^#[0-9a-f]{6}$/i.test(p.value) ? "color" : p.key.endsWith("_opacity") ? "number" : "text"}
+                    min={p.key.endsWith("_opacity") ? 0 : undefined}
+                    max={p.key.endsWith("_opacity") ? 100 : undefined}
+                    step={p.key.endsWith("_opacity") ? 1 : undefined}
                     placeholder="value"
                     value={p.value}
                     aria-label={`Value of ${p.key || "the parameter"}`}
