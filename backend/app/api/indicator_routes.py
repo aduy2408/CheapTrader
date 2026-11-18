@@ -74,21 +74,34 @@ def run(
     if spec is None:
         raise HTTPException(status_code=404, detail=f"indicator {indicator_id} not found")
 
+    analysis_timeframe = timeframe
+    higher_timeframe = False
+    if spec.id == "builtin.smt_divergence":
+        requested_timeframe = str(spec.params.get("analysis_timeframe", "chart")).upper()
+        if requested_timeframe != "CHART":
+            try:
+                analysis_timeframe = Timeframe(requested_timeframe)
+            except ValueError as exc:
+                raise HTTPException(status_code=422, detail=f"Unsupported SMT timeframe: {requested_timeframe}") from exc
+            higher_timeframe = analysis_timeframe != timeframe
+
     show_from = None
     if start is not None and end is not None:
         if end < start:
             raise HTTPException(status_code=422, detail="The indicator window ends before it starts.")
-        bars = state.cache.ensure_range(state.broker.adapter, symbol, timeframe, moment(start), moment(end))
+        bars = state.cache.ensure_range(state.broker.adapter, symbol, analysis_timeframe, moment(start), moment(end))
         needed = declared_bars(spec.code) or 0
         if bars and len(bars) < needed:
-            warmup = state.cache.history_before(state.broker.adapter, symbol, timeframe, bars[0].time, needed - len(bars))
+            warmup = state.cache.history_before(
+                state.broker.adapter, symbol, analysis_timeframe, bars[0].time, needed - len(bars)
+            )
             bars = warmup.bars + bars
-        show_from = start
+        show_from = None if higher_timeframe else start
     else:
         bars = state.cache.get_bars(
-            state.broker.adapter, symbol, timeframe, count=bars_to_load(count, declared_bars(spec.code))
+            state.broker.adapter, symbol, analysis_timeframe, count=bars_to_load(count, declared_bars(spec.code))
         )
-        show_from = bars[-count].time if len(bars) > count else None
+        show_from = None if higher_timeframe else (bars[-count].time if len(bars) > count else None)
     context = None
     correlated_symbol = spec.params.get("correlated_symbol")
     if correlated_symbol is not None:
@@ -96,7 +109,7 @@ def run(
             correlated = state.cache.ensure_range(
                 state.broker.adapter,
                 str(correlated_symbol).strip(),
-                timeframe,
+                analysis_timeframe,
                 moment(bars[0].time),
                 moment(bars[-1].time),
             ) if bars and str(correlated_symbol).strip() else []

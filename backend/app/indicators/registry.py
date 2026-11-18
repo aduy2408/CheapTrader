@@ -308,6 +308,7 @@ def compute(df, params):
         "pane": 0,
         "params": {
             "correlated_symbol": "",
+            "analysis_timeframe": "chart",
             "sensitivity": 3,
             "max_visible": 5,
             "show_labels": True,
