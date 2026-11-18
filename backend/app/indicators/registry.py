@@ -297,6 +297,17 @@ def compute(df, params):
                 hline(min(float(row.low) for row in previous), color="#30c1ec", dash="dotted", width=1),
                 hline(float(previous[-1].close), color="#787b86", dash="dashed", width=1),
             ])
+        weeks = {}
+        for day, rows in days.items():
+            weeks.setdefault(day - timedelta(days=day.weekday()), []).extend(rows)
+        current_week = latest - timedelta(days=latest.weekday())
+        completed_weeks = sorted(week for week in weeks if week < current_week)
+        if completed_weeks:
+            previous_week = weeks[completed_weeks[-1]]
+            sessions.extend([
+                hline(max(float(row.high) for row in previous_week), color="#00a86b", dash="dotted", width=1),
+                hline(min(float(row.low) for row in previous_week), color="#f23645", dash="dotted", width=1),
+            ])
 
     return {"drawings": sessions}
 ''',
