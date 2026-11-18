@@ -15,16 +15,27 @@ if [[ ! -f "$CT_UI_DIR/index.html" ]]; then
   echo "frontend/dist is missing; run: (cd frontend && npm ci && npm run build)" >&2
   exit 1
 fi
-
+mt5_pid=""
 if [[ -f "$MT5_EXE" ]] && ! pgrep -af 'terminal64\.exe' >/dev/null; then
   echo "Starting MetaTrader 5 with Wine..."
   wine "$MT5_EXE" >/tmp/cheaptrader-mt5.log 2>&1 &
-  disown || true
+  mt5_pid=$!
 fi
 cd "$BACKEND"
 uv run uvicorn app.main:app --host 127.0.0.1 --port "${CT_PORT:-8000}" &
 server_pid=$!
-trap 'kill "$server_pid" 2>/dev/null || true' EXIT
+
+cleanup() {
+  status=$?
+  trap - EXIT INT TERM
+  kill "$server_pid" 2>/dev/null || true
+  if [[ -n "$mt5_pid" ]] && kill -0 "$mt5_pid" 2>/dev/null; then
+    kill "$mt5_pid" 2>/dev/null || true
+    wait "$mt5_pid" 2>/dev/null || true
+  fi
+  exit "$status"
+}
+trap cleanup EXIT INT TERM
 
 for _ in {1..60}; do
   if curl -fsS "http://127.0.0.1:${CT_PORT:-8000}/api/health" >/dev/null; then
