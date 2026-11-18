@@ -24,6 +24,9 @@ export function TerminalMenu() {
   const [note, setNote] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [confirmQuit, setConfirmQuit] = useState(false);
+  const [accountLogin, setAccountLogin] = useState("");
+  const [accountPassword, setAccountPassword] = useState("");
+  const [accountServer, setAccountServer] = useState("");
   const [confirmOrders, setConfirmOrders] = useState(false);
   const button = useRef<HTMLButtonElement>(null);
   const panel = useRef<HTMLDivElement>(null);
@@ -121,6 +124,51 @@ export function TerminalMenu() {
               </span>
               {info.path && <span className="tv-tmenu-path" title={info.path}>{info.path}</span>}
             </div>
+
+            <div className="tv-menu-title">SWITCH ACCOUNT</div>
+            <form
+              className="tv-tmenu-account"
+              onSubmit={(e) => {
+                e.preventDefault();
+                void act(async () => {
+                  const next = await api.switchTerminalAccount(Number(accountLogin), accountPassword, accountServer);
+                  setAccountPassword("");
+                  return next;
+                }, "Account switched.");
+              }}
+            >
+              <label>
+                Login
+                <input
+                  inputMode="numeric"
+                  value={accountLogin}
+                  onChange={(e) => setAccountLogin(e.target.value)}
+                  required
+                />
+              </label>
+              <label>
+                Trading password
+                <input
+                  type="password"
+                  value={accountPassword}
+                  onChange={(e) => setAccountPassword(e.target.value)}
+                  required
+                />
+              </label>
+              <label>
+                Server
+                <input
+                  value={accountServer}
+                  onChange={(e) => setAccountServer(e.target.value)}
+                  placeholder="Broker-Server"
+                  required
+                />
+              </label>
+              <button className="tv-tmenu-btn" disabled={busy} type="submit">
+                Switch and reconnect
+              </button>
+              <small>Credentials are sent to MT5 for this switch and are not saved by CheapTrader.</small>
+            </form>
 
             <div className="tv-menu-title">WINDOW</div>
             <label className="tv-tmenu-row switch">

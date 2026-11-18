@@ -101,6 +101,29 @@ class AppState:
             raise
         return Prepared(adapter=adapter, terminal=terminal, cache=cache, symbols=symbols)
 
+    def prepare_metatrader_account(self, login: int, password: str, server: str) -> Prepared:
+        """Open a new MT5 session for an account without replacing the current one yet."""
+        old_credentials = (self.settings.mt5_login, self.settings.mt5_password, self.settings.mt5_server)
+        self.settings.mt5_login = login
+        self.settings.mt5_password = password
+        self.settings.mt5_server = server
+        adapter: BrokerAdapter | None = None
+        try:
+            adapter = self.broker.connect_metatrader()
+            terminal = adapter.get_terminal()
+            if not terminal.account_login:
+                raise BrokerError("MetaTrader connected, but the requested account is not logged in.")
+            symbols = SymbolRegistry()
+            symbols.sync(adapter)
+            wanted = store_path_for_broker(default_db_path("mt5"), terminal.company or terminal.account_server)
+            cache = DataCache(store=BarStore(wanted))
+            return Prepared(adapter=adapter, terminal=terminal, cache=cache, symbols=symbols)
+        except Exception:
+            if adapter is not None:
+                adapter.disconnect()
+            self.settings.mt5_login, self.settings.mt5_password, self.settings.mt5_server = old_credentials
+            raise
+
     def commit_metatrader(self, prepared: Prepared) -> None:
         """Put a prepared MetaTrader connection to use (on the event loop): the prices, history, symbols,
         account and orders are the terminal's from now on, and the screens that are open follow."""

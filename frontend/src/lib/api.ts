@@ -152,6 +152,12 @@ export const api = {
   /** Switch from made-up prices to the MetaTrader terminal that is open now. Rejects, in words, when it cannot. */
   connectTerminal: () => request<TerminalStatus>("/api/terminal/connect", { method: "POST" }),
 
+  switchTerminalAccount: (login: number, password: string, server: string) =>
+    request<TerminalStatus>("/api/terminal/account", {
+      method: "POST",
+      body: JSON.stringify({ login, password, server }),
+    }),
+
   /** Let the app send orders to the broker, or stop it. */
   setOrders: (enabled: boolean) =>
     request<TerminalStatus>("/api/app/orders", { method: "POST", body: JSON.stringify({ enabled }) }),

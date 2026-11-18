@@ -1364,6 +1364,30 @@ textarea {
 .tv-tmenu-row.switch {
   cursor: pointer;
 }
+.tv-tmenu-account {
+  display: grid;
+  gap: 7px;
+  padding: 4px 16px 10px;
+}
+.tv-tmenu-account label {
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  align-items: center;
+  gap: 8px;
+  color: var(--ct-text);
+}
+.tv-tmenu-account input {
+  min-width: 0;
+  padding: 5px 7px;
+  color: var(--ct-text);
+  background: var(--ct-surface);
+  border: 1px solid var(--ct-border);
+  border-radius: 4px;
+}
+.tv-tmenu-account small {
+  color: var(--ct-muted);
+  font-size: 12px;
+}
 
 /* An on / off switch. */
 .tv-switch {

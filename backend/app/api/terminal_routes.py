@@ -65,6 +65,30 @@ class OrdersRequest(BaseModel):
     enabled: bool
 
 
+class AccountRequest(BaseModel):
+    login: int
+    password: str
+    server: str
+
+
+@router.post("/terminal/account")
+async def terminal_account(request: AccountRequest) -> dict:
+    """Reconnect the app to another MT5 account without requiring terminal UI interaction."""
+    state = get_state()
+    if state.settings.broker.lower() == "mock":
+        raise HTTPException(status_code=409, detail="CheapTrader is set to the synthetic market, not MetaTrader.")
+    async with state.switch_lock:
+        try:
+            prepared = await asyncio.to_thread(
+                state.prepare_metatrader_account, request.login, request.password, request.server
+            )
+        except Exception as exc:  # noqa: BLE001 - the broker gives an actionable error
+            logger.info("could not switch MetaTrader account: %s", exc)
+            raise HTTPException(status_code=409, detail=str(exc)) from exc
+        state.commit_metatrader(prepared)
+    return await asyncio.to_thread(_status)
+
+
 def _status() -> dict:
     state = get_state()
     adapter = state.broker.adapter

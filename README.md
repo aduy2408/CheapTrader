@@ -1021,6 +1021,7 @@ something stops the terminal taking the app's orders) opens one panel:
   3. Nothing else: no Expert Advisor has to run and "Allow DLL imports" is not needed.
   4. If orders are still refused, the broker has switched off automated trading for the
      account. A refused order says which of these it is (retcodes 10027 and 10026).
+  The same panel also has **Switch account**. Enter the MT5 login, trading password, and broker server to reconnect CheapTrader without opening MetaTrader's login dialog. Credentials are sent only for that connection attempt and are not saved. All browser tabs follow the newly selected account because they share one backend connection.
 - **This page / Quit.** The address the app is open at, with a Copy button, and (in
   `CheapTrader.exe`) a two-click Quit button. Quitting leaves positions open in MetaTrader.
 
