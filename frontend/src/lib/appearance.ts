@@ -2,6 +2,7 @@ export type CrosshairStyle = 0 | 1 | 2 | 3 | 4;
 
 export interface ChartAppearance {
   background: string;
+  gridVisible: boolean;
   grid: string;
   text: string;
   scaleLines: string;
@@ -9,6 +10,8 @@ export interface ChartAppearance {
   crosshairLabel: string;
   up: string;
   down: string;
+  borderUp: string;
+  borderDown: string;
   wickUp: string;
   wickDown: string;
   cursor: "crosshair" | "default";
@@ -16,6 +19,7 @@ export interface ChartAppearance {
 }
 
 export const DEFAULT_APPEARANCE: ChartAppearance = {
+  gridVisible: true,
   background: "#131722",
   grid: "#20242f",
   text: "#b2b5be",
@@ -24,6 +28,8 @@ export const DEFAULT_APPEARANCE: ChartAppearance = {
   crosshairLabel: "#4c525e",
   up: "#089981",
   down: "#f23645",
+  borderUp: "#089981",
+  borderDown: "#f23645",
   wickUp: "#089981",
   wickDown: "#f23645",
   cursor: "crosshair",

@@ -278,8 +278,8 @@ export function createChartHandle(container: HTMLElement, initialAppearance: Cha
         textColor: appearance.text,
       },
       grid: {
-        vertLines: { color: appearance.grid },
-        horzLines: { color: appearance.grid },
+        vertLines: { color: appearance.gridVisible ? appearance.grid : "transparent" },
+        horzLines: { color: appearance.gridVisible ? appearance.grid : "transparent" },
       },
       crosshair: {
         vertLine: {
@@ -299,8 +299,8 @@ export function createChartHandle(container: HTMLElement, initialAppearance: Cha
     series.applyOptions({
       upColor: appearance.up,
       downColor: appearance.down,
-      borderUpColor: appearance.up,
-      borderDownColor: appearance.down,
+      borderUpColor: appearance.borderUp,
+      borderDownColor: appearance.borderDown,
       wickUpColor: appearance.wickUp,
       wickDownColor: appearance.wickDown,
     });

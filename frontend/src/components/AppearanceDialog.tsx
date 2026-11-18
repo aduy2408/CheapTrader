@@ -39,7 +39,8 @@ export function AppearanceDialog({ value, onClose, onSave }: Props) {
             <div className="appearance-fields">
               <h3>Chart basic styles</h3>
               <label>Background <input type="color" value={draft.background} onChange={(e) => set("background", e.target.value)} /></label>
-              <label>Grid lines <input type="color" value={draft.grid} onChange={(e) => set("grid", e.target.value)} /></label>
+              <label className="appearance-check"><span>Grid lines</span><input type="checkbox" checked={draft.gridVisible} onChange={(e) => set("gridVisible", e.target.checked)} /></label>
+              <label>Grid color <input type="color" value={draft.grid} onChange={(e) => set("grid", e.target.value)} /></label>
               <label>Scale lines <input type="color" value={draft.scaleLines} onChange={(e) => set("scaleLines", e.target.value)} /></label>
               <label>Text <input type="color" value={draft.text} onChange={(e) => set("text", e.target.value)} /></label>
               <label>Crosshair <input type="color" value={draft.crosshair} onChange={(e) => set("crosshair", e.target.value)} /></label>
@@ -61,6 +62,8 @@ export function AppearanceDialog({ value, onClose, onSave }: Props) {
               <h3>Candles</h3>
               <label>Up body <input type="color" value={draft.up} onChange={(e) => set("up", e.target.value)} /></label>
               <label>Down body <input type="color" value={draft.down} onChange={(e) => set("down", e.target.value)} /></label>
+              <label>Up border <input type="color" value={draft.borderUp} onChange={(e) => set("borderUp", e.target.value)} /></label>
+              <label>Down border <input type="color" value={draft.borderDown} onChange={(e) => set("borderDown", e.target.value)} /></label>
               <label>Up wick <input type="color" value={draft.wickUp} onChange={(e) => set("wickUp", e.target.value)} /></label>
               <label>Down wick <input type="color" value={draft.wickDown} onChange={(e) => set("wickDown", e.target.value)} /></label>
             </div>
