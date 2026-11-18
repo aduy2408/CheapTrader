@@ -165,9 +165,11 @@ textarea {
   overflow: hidden;
 }
 
-.chart {
+.chart,
+.chart canvas {
   width: 100%;
   height: 100%;
+  cursor: crosshair;
 }
 
 /* The next interval is on its way: the candles on screen dim a little, so the
